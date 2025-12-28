@@ -1,0 +1,5 @@
+{
+  "name": "Grid Splitter & AI Enhancer",
+  "description": "Automatically split grid images (like 3x3 posters), remove corner text, and enhance to ultra-high quality using Gemini AI.",
+  "requestFramePermissions": []
+}
