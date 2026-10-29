@@ -1,0 +1,4 @@
+interface:
+  display_name: "每日国际新闻十大头条"
+  short_description: "实时搜索权威媒体，精选十大国际新闻并提供中文标题、摘要、详情与来源"
+  default_prompt: "使用 $daily-world-news 搜索过去24小时的国际新闻，整理十大头条，提供中文标题、内容摘要、详情和来源链接。"
