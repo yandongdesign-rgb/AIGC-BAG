@@ -1,5 +1,7 @@
 # 花语 · 手势花园 (Gesture Garden)
 
+![盛开状态预览](preview.png)
+
 用摄像头和 MediaPipe Hands 识别手势，控制一座程序绘制的疗愈花园：
 
 | 手势 | 效果 |
