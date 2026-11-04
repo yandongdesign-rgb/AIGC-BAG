@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#0f1115" />
+  <title>指尖 PPG 实验室</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div>
+      <h1>指尖 PPG 实验室</h1>
+      <p class="sub">手机摄像头光电容积脉搏波 · HRV 分析</p>
+    </div>
+    <button id="btnSettings" class="icon-btn" aria-label="实验参数">⚙</button>
+  </header>
+
+  <main>
+    <!-- 状态 -->
+    <section class="card status">
+      <div class="preview"><video id="video" playsinline muted></video></div>
+      <div class="status-text">
+        <div id="fingerMsg" class="finger-msg">点击「开始测量」，将指腹轻压在后置摄像头和闪光灯上</div>
+        <div class="sqi-row">
+          <span>信号质量</span>
+          <div class="sqi-bar"><div id="sqiFill"></div></div>
+          <span id="sqiVal">--</span>
+        </div>
+        <div class="meta"><span id="timer">00:00</span> · <span id="fps">-- fps</span> · <span id="torchState">闪光灯 --</span></div>
+      </div>
+    </section>
+
+    <!-- 核心指标 -->
+    <section class="metrics">
+      <div class="metric big">
+        <div class="label">PR 脉率</div>
+        <div class="value"><span id="hr">--</span><small>bpm</small></div>
+      </div>
+      <div class="metric">
+        <div class="label" title="Pulse-to-Pulse Interval，相邻收缩峰间隔，对应 ECG 的 RR 间期">PPI 脉搏间期</div>
+        <div class="value"><span id="ppi">--</span><small>ms</small></div>
+      </div>
+      <div class="metric">
+        <div class="label">PI 灌注指数</div>
+        <div class="value"><span id="pi">--</span><small>%</small></div>
+      </div>
+      <div class="metric">
+        <div class="label">有效心搏</div>
+        <div class="value"><span id="beatCount">0</span></div>
+      </div>
+    </section>
+
+    <!-- 波形 -->
+    <section class="card">
+      <div class="card-title">脉搏波形 <span class="hint">带通滤波后 · <span id="filterDesc"></span></span></div>
+      <canvas id="waveCanvas" class="chart wave"></canvas>
+      <div class="card-title">间期趋势 PPI Tachogram</div>
+      <canvas id="tachoCanvas" class="chart tacho"></canvas>
+    </section>
+
+    <!-- 控制 -->
+    <section class="controls">
+      <select id="duration" aria-label="测量时长">
+        <option value="60">60 秒</option>
+        <option value="120" selected>120 秒（含频域）</option>
+        <option value="300">5 分钟（标准短时 HRV）</option>
+        <option value="0">不限时</option>
+      </select>
+      <button id="btnStart" class="primary">开始测量</button>
+      <button id="btnExport" class="ghost" disabled>导出 CSV</button>
+    </section>
+
+    <!-- HRV -->
+    <section class="card">
+      <div class="card-title">HRV 特征 <span class="hint" id="hrvHint">实时更新</span></div>
+      <div class="hrv-grid" id="hrvGrid"></div>
+      <div class="two-col">
+        <div><div class="mini-title">Poincaré 图</div><canvas id="poincareCanvas" class="chart square"></canvas></div>
+        <div><div class="mini-title">PPI 功率谱 <span class="lf-dot">LF</span> <span class="hf-dot">HF</span></div><canvas id="psdCanvas" class="chart square"></canvas></div>
+      </div>
+    </section>
+
+    <!-- 智能解读 -->
+    <section class="card">
+      <div class="card-title">智能解读 <span class="hint">规则引擎 · 可接入模型</span></div>
+      <div id="insights" class="insights"><p class="muted">测量结束后生成解读。</p></div>
+    </section>
+
+    <footer class="disclaimer">
+      仅供生物医学工程教学与实验使用，不能用于医疗诊断。<br />
+      PPG 没有 P 波，此处 “PR” 指监护仪通用的脉率（Pulse Rate），“PPI” 为脉搏间期（≈ ECG 的 RR 间期）。
+    </footer>
+  </main>
+
+  <!-- 参数面板 -->
+  <dialog id="settings">
+    <form method="dialog" class="settings-form">
+      <div class="settings-head">
+        <h2>实验参数</h2>
+        <button value="close" class="icon-btn" aria-label="关闭">✕</button>
+      </div>
+      <div id="settingsBody"></div>
+      <div class="settings-actions">
+        <button type="button" id="btnReset" class="ghost">恢复默认</button>
+        <button value="close" class="primary">完成</button>
+      </div>
+      <p class="muted small">参数实时生效并保存在本机浏览器；更多参数见 js/config.js。</p>
+    </form>
+  </dialog>
+
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>
