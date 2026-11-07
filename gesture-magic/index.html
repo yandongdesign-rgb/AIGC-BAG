@@ -46,7 +46,7 @@ h2{margin:0;font-family:Cinzel,serif;font-weight:400;font-size:clamp(11px,2.6vw,
 
 /* ---------- HUD ---------- */
 #hud{position:fixed;left:0;right:0;top:0;display:flex;align-items:flex-start;justify-content:space-between;
-  padding:14px 16px;z-index:5;pointer-events:none;transition:opacity .6s}
+  padding:calc(14px + env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) 14px max(16px,env(safe-area-inset-left,0px));z-index:5;pointer-events:none;transition:opacity .6s}
 #brand{font-family:Cinzel,serif;letter-spacing:.4em;font-size:14px;color:var(--dim)}
 #brand span{display:block;font-family:"Noto Serif SC",serif;letter-spacing:.6em;font-size:11px;margin-top:4px;opacity:.7}
 #status{margin-top:8px;font-size:12px;letter-spacing:.15em;color:rgba(126,240,255,.7)}
@@ -111,6 +111,8 @@ body.hideui #hud,body.hideui #grimoire{opacity:0}
 /* =====================================================================
    ARCANUM · 秘境召唤 —— MediaPipe 手势 + Canvas 粒子 / 闪电 + Web Audio 程序化配乐
    ===================================================================== */
+const CAM_ALLOWED = true;   // 在线沙箱版本会设为 false（仅触屏/鼠标施法）
+const TOUCH = matchMedia('(pointer: coarse)').matches;
 const TAU = Math.PI * 2;
 const R = (a, b) => a + Math.random() * (b - a);
 const clamp = (v, a, b) => v < a ? a : v > b ? b : v;
@@ -989,8 +991,8 @@ async function startCam() {
 }
 function startMouse(msg) {
   mode = 'mouse'; activeKey = '';
-  setStatus('鼠标施法 · 1–7 切换法术 · 按住蓄力 松开星爆');
-  toast(msg || '移动鼠标施法 · 数字键 1–7 或点击下方符文切换 · 按住鼠标蓄力，松开释放星爆', 7000);
+  setStatus(TOUCH ? '触屏施法 · 点下方符文切换' : '鼠标施法 · 1–7 切换法术 · 按住蓄力 松开星爆');
+  toast(msg || (TOUCH ? '手指在屏幕上滑动施法 · 点下方符文切换法术 · 长按蓄力，松手释放星爆' : '移动鼠标施法 · 数字键 1–7 或点击下方符文切换 · 按住鼠标蓄力，松开释放星爆'), 7000);
 }
 async function begin(useCam) {
   AU.init();
@@ -999,8 +1001,12 @@ async function begin(useCam) {
   try { await startCam(); }
   catch (e) { console.error(e); startMouse('⚠ 摄像头或手势模型不可用（' + (e.message || e.name) + '），已切换为鼠标施法'); }
 }
-document.getElementById('go').onclick = () => begin(true);
+document.getElementById('go').onclick = () => begin(CAM_ALLOWED);
 document.getElementById('mouseBtn').onclick = () => begin(false);
+if (!CAM_ALLOWED) {
+  document.getElementById('mouseBtn').hidden = true;
+  document.querySelector('#intro .note').textContent = (TOUCH ? '手指滑动施法 · 长按蓄力松手星爆' : '鼠标施法 · 按住蓄力松开星爆') + ' · 建议戴耳机 · 摄像头手势版见项目说明';
+}
 
 cv.addEventListener('pointermove', e => { mouse.x = e.clientX; mouse.y = e.clientY; });
 cv.addEventListener('pointerdown', e => { mouse.x = e.clientX; mouse.y = e.clientY; mouse.down = true; });
@@ -1010,7 +1016,7 @@ const bSound = document.getElementById('bSound'), bBones = document.getElementBy
 const toggleSound = () => { AU.mute(!AU.muted); bSound.classList.toggle('off', AU.muted); };
 const toggleBones = () => { showBones = !showBones; bBones.classList.toggle('off', !showBones); };
 const toggleUI = () => document.body.classList.toggle('hideui');
-const toggleFull = () => document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen?.();
+const toggleFull = () => { try { const r = document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen?.(); r?.catch?.(() => toast('当前环境不支持全屏')); } catch (e) { toast('当前环境不支持全屏'); } };
 bSound.onclick = toggleSound; bBones.onclick = toggleBones; document.getElementById('bUI').onclick = toggleUI; document.getElementById('bFull').onclick = toggleFull;
 const KEYMAP = { 1: 'POINT', 2: 'PEACE', 3: 'ROCK', 4: 'OPEN', 5: 'FIST', 6: 'PINCH', 7: 'TWIN' };
 addEventListener('keydown', e => {
