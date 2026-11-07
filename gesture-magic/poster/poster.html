@@ -1,0 +1,238 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>秘境召唤 · 海报</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@300;500;900&family=Cinzel:wght@400;600&display=block" rel="stylesheet">
+<style>html,body{margin:0;background:#06030d}canvas{display:block;width:1080px;height:1920px}</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<script>
+/* 秘境召唤 海报 · 1080×1920 (9:16)，画布按 2× 绘制
+   构图：一只做出 🤘 手势的“灵视骨骼手”从画面底部升起，指尖放出的闪电击中巨大的「秘」「境」二字，
+   电流在字的笔画边缘爬行；背后是旋转的符文法阵。所有元素都取自交互作品本身的视觉语言。 */
+const W = 1080, H = 1920, S = 2, TAU = Math.PI * 2;
+const cv = document.getElementById('c'); cv.width = W * S; cv.height = H * S;
+const ctx = cv.getContext('2d'); ctx.scale(S, S);
+let seed = 20261107;
+const rnd = () => { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
+const R = (a, b) => a + rnd() * (b - a);
+const pick = a => a[(rnd() * a.length) | 0];
+
+const SERIF = '"Noto Serif SC", serif', CINZEL = 'Cinzel, "Noto Serif SC", serif';
+const C1 = { ch: '秘', x: 368, y: 610, size: 540 };
+const C2 = { ch: '境', x: 716, y: 1120, size: 540 };
+
+function glowDot(x, y, r, col, a = 1) {
+  const g = ctx.createRadialGradient(x, y, 0, x, y, r);
+  g.addColorStop(0, `rgba(255,255,255,${a})`); g.addColorStop(0.15, `rgba(${col},${0.9 * a})`);
+  g.addColorStop(0.45, `rgba(${col},${0.25 * a})`); g.addColorStop(1, `rgba(${col},0)`);
+  ctx.fillStyle = g; ctx.fillRect(x - r, y - r, r * 2, r * 2);
+}
+function radial(x, y, r, stops) { const g = ctx.createRadialGradient(x, y, 0, x, y, r); stops.forEach(([o, c]) => g.addColorStop(o, c)); ctx.fillStyle = g; ctx.fillRect(x - r, y - r, r * 2, r * 2); }
+
+function mpd(x1, y1, x2, y2, disp, detail = 3) {
+  let pts = [[x1, y1], [x2, y2]], d = disp;
+  while (d > detail && pts.length < 400) {
+    const n = [pts[0]];
+    for (let i = 0; i < pts.length - 1; i++) {
+      const a = pts[i], b = pts[i + 1], dx = b[0] - a[0], dy = b[1] - a[1], L = Math.hypot(dx, dy) || 1, off = (rnd() - 0.5) * d;
+      n.push([(a[0] + b[0]) / 2 - dy / L * off, (a[1] + b[1]) / 2 + dx / L * off], b);
+    }
+    pts = n; d /= 2;
+  }
+  return pts;
+}
+function stroke(pts) { ctx.beginPath(); ctx.moveTo(pts[0][0], pts[0][1]); for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i][0], pts[i][1]); ctx.stroke(); }
+function bolt(x1, y1, x2, y2, { w = 2, c = '160,175,255', nb = 2, disp, glow = 1 } = {}) {
+  const len = Math.hypot(x2 - x1, y2 - y1), main = mpd(x1, y1, x2, y2, disp ?? len * 0.3), brs = [];
+  const dir = Math.atan2(y2 - y1, x2 - x1);
+  for (let i = 0; i < nb; i++) {
+    const [sx, sy] = main[(main.length * R(0.15, 0.85)) | 0], an = dir + R(-1.1, 1.1), bl = len * R(0.12, 0.4);
+    brs.push(mpd(sx, sy, sx + Math.cos(an) * bl, sy + Math.sin(an) * bl, bl * 0.4));
+  }
+  ctx.save(); ctx.globalCompositeOperation = 'lighter'; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+  for (const [wm, al, col, blur] of [[9, 0.06 * glow, c, 0], [3.2, 0.28, c, 18 * glow], [1, 1, '255,255,255', 0]]) {
+    ctx.strokeStyle = `rgba(${col},${al})`; ctx.shadowColor = `rgba(${c},0.9)`; ctx.shadowBlur = blur;
+    ctx.lineWidth = w * wm; stroke(main);
+    ctx.lineWidth = w * wm * 0.5; brs.forEach(stroke);
+  }
+  ctx.restore();
+}
+
+const RUNE_A = '☰☱☲☳☴☵☶☷', RUNE_B = 'ΑΒΓΔΕΖΗΘΙΚΛΜΝΞΟΠΡΣΤΥΦΧΨΩ';
+function sigil(x, y, Rr, rot, a, col) {
+  ctx.save(); ctx.translate(x, y); ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = a;
+  ctx.strokeStyle = col; ctx.fillStyle = col; ctx.lineWidth = 1.3;
+  const ring = r => { ctx.beginPath(); ctx.arc(0, 0, r, 0, TAU); ctx.stroke(); };
+  ring(Rr); ring(Rr * 0.985); ring(Rr * 0.82); ring(Rr * 0.42); ring(Rr * 0.4);
+  ctx.save(); ctx.rotate(rot);
+  ctx.font = `500 ${Rr * 0.075 | 0}px ${SERIF}`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  for (let i = 0; i < 24; i++) { ctx.save(); ctx.rotate(i / 24 * TAU); ctx.fillText(i % 2 ? RUNE_A[(i >> 1) % 8] : RUNE_B[(i * 7) % 24], 0, -Rr * 0.9); ctx.restore(); }
+  ctx.beginPath();
+  for (let i = 0; i < 96; i++) { const an = i / 96 * TAU, r2 = Rr * (i % 8 ? 0.795 : 0.76); ctx.moveTo(Math.cos(an) * Rr * 0.82, Math.sin(an) * Rr * 0.82); ctx.lineTo(Math.cos(an) * r2, Math.sin(an) * r2); }
+  ctx.stroke(); ctx.restore();
+  const poly = (n, r, off) => { ctx.beginPath(); for (let i = 0; i <= n; i++) { const an = off + i / n * TAU - Math.PI / 2; i ? ctx.lineTo(Math.cos(an) * r, Math.sin(an) * r) : ctx.moveTo(Math.cos(an) * r, Math.sin(an) * r); } ctx.stroke(); };
+  ctx.save(); ctx.rotate(-rot * 1.6); poly(3, Rr * 0.8, 0); poly(3, Rr * 0.8, Math.PI); poly(6, Rr * 0.42, 0); ctx.restore();
+  ctx.save(); ctx.rotate(rot * 2.2); for (let i = 0; i < 6; i++) { const an = i / 6 * TAU; ctx.beginPath(); ctx.arc(Math.cos(an) * Rr * 0.61, Math.sin(an) * Rr * 0.61, Rr * 0.055, 0, TAU); ctx.stroke(); } ctx.restore();
+  ctx.restore();
+}
+
+function draw() {
+  /* ---------- 底色与光 ---------- */
+  ctx.fillStyle = '#06030d'; ctx.fillRect(0, 0, W, H);
+  radial(560, 1560, 1000, [[0, 'rgba(120,55,215,0.62)'], [0.45, 'rgba(70,30,150,0.28)'], [1, 'rgba(20,8,50,0)']]);
+  radial(360, 600, 620, [[0, 'rgba(150,80,255,0.32)'], [1, 'rgba(80,30,160,0)']]);
+  radial(1040, 60, 700, [[0, 'rgba(60,150,230,0.2)'], [1, 'rgba(30,80,160,0)']]);
+  radial(80, 1300, 520, [[0, 'rgba(200,60,180,0.14)'], [1, 'rgba(120,30,120,0)']]);
+  ctx.globalCompositeOperation = 'lighter';
+  for (let i = 0; i < 520; i++) { ctx.fillStyle = `rgba(210,200,255,${R(0.08, 0.6)})`; const s = R(0.4, 1.8); ctx.fillRect(R(0, W), R(0, H), s, s); }
+  ctx.globalCompositeOperation = 'source-over';
+
+  /* ---------- 法阵 ---------- */
+  sigil(548, 900, 500, 0.35, 0.22, '#b996ff');
+  sigil(548, 900, 640, -0.2, 0.07, '#8fe8ff');
+
+  /* ---------- 文字蒙版，用来让电流贴着笔画爬 ---------- */
+  const m = document.createElement('canvas'); m.width = W; m.height = H; const mx = m.getContext('2d');
+  mx.textAlign = 'center'; mx.textBaseline = 'middle'; mx.fillStyle = '#fff';
+  for (const c of [C1, C2]) { mx.font = `900 ${c.size}px ${SERIF}`; mx.fillText(c.ch, c.x, c.y); }
+  const md = mx.getImageData(0, 0, W, H).data, A = (x, y) => md[(y * W + x) * 4 + 3];
+  const edges = [];
+  for (let y = 4; y < H - 4; y += 3) for (let x = 4; x < W - 4; x += 3) if (A(x, y) > 128 && (A(x + 4, y) < 60 || A(x - 4, y) < 60 || A(x, y + 4) < 60 || A(x, y - 4) < 60)) edges.push([x, y]);
+  const nearestEdge = (x, y) => { let b = edges[0], bd = 1e12; for (const e of edges) { const d = (e[0] - x) ** 2 + (e[1] - y) ** 2; if (d < bd) { bd = d; b = e; } } return b; };
+
+  /* ---------- 秘 境 ---------- */
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  for (const c of [C1, C2]) {
+    ctx.font = `900 ${c.size}px ${SERIF}`;
+    ctx.save(); ctx.globalCompositeOperation = 'lighter';
+    ctx.fillStyle = 'rgba(80,230,255,0.5)'; ctx.fillText(c.ch, c.x - 7, c.y + 1);
+    ctx.fillStyle = 'rgba(255,70,200,0.5)'; ctx.fillText(c.ch, c.x + 7, c.y - 1);
+    ctx.restore();
+    ctx.save(); ctx.shadowColor = 'rgba(165,95,255,0.95)'; ctx.shadowBlur = 90;
+    const g = ctx.createLinearGradient(0, c.y - c.size / 2, 0, c.y + c.size / 2);
+    g.addColorStop(0, '#ffffff'); g.addColorStop(0.55, '#efe6ff'); g.addColorStop(1, '#b89cff');
+    ctx.fillStyle = g; ctx.fillText(c.ch, c.x, c.y); ctx.shadowBlur = 30; ctx.fillText(c.ch, c.x, c.y);
+    ctx.restore();
+  }
+  // 信号撕裂：几条横向切片错位
+  for (let i = 0; i < 7; i++) {
+    const c = i < 3 ? C1 : C2, y = c.y + R(-c.size * 0.42, c.size * 0.42), h = R(4, 18), dx = R(-46, 46);
+    const x0 = c.x - c.size * 0.55, ww = c.size * 1.1;
+    ctx.drawImage(cv, x0 * S, y * S, ww * S, h * S, x0 + dx, y, ww, h);
+  }
+
+  /* ---------- 手：🤘 雷殛手势，骨骼线条 ---------- */
+  const LM = [[0, 0], [-0.36, -0.2], [-0.62, -0.46], [-0.58, -0.74], [-0.3, -0.84], [-0.34, -1.0], [-0.42, -1.46], [-0.46, -1.76], [-0.49, -2.04],
+    [-0.06, -1.05], [-0.07, -1.42], [-0.13, -1.22], [-0.15, -1.0], [0.2, -0.98], [0.23, -1.32], [0.15, -1.13], [0.11, -0.93],
+    [0.43, -0.86], [0.56, -1.22], [0.63, -1.47], [0.69, -1.72]];
+  const HX = 585, HY = 1790, HS = 232, rot = -0.06;
+  const P = LM.map(([x, y]) => [HX + (x * Math.cos(rot) - y * Math.sin(rot)) * HS, HY + (x * Math.sin(rot) + y * Math.cos(rot)) * HS]);
+  const BONES = [[0, 1], [1, 2], [2, 3], [3, 4], [0, 5], [5, 6], [6, 7], [7, 8], [5, 9], [9, 10], [10, 11], [11, 12], [9, 13], [13, 14], [14, 15], [15, 16], [13, 17], [17, 18], [18, 19], [19, 20], [0, 17]];
+  const palm = [(P[0][0] + P[5][0] + P[17][0]) / 3, (P[0][1] + P[5][1] + P[17][1]) / 3 + 40];
+  ctx.globalCompositeOperation = 'lighter';
+  radial(palm[0], palm[1], 420, [[0, 'rgba(120,150,255,0.35)'], [1, 'rgba(80,90,255,0)']]);
+  sigil(palm[0], palm[1], 250, 1.1, 0.4, '#a8c4ff');
+  ctx.globalCompositeOperation = 'lighter';
+  ctx.lineCap = 'round';
+  for (const [wd, al] of [[10, 0.1], [3, 0.55], [1.2, 0.95]]) {
+    ctx.strokeStyle = `rgba(150,225,255,${al})`; ctx.lineWidth = wd; ctx.beginPath();
+    for (const [a, b] of BONES) { ctx.moveTo(P[a][0], P[a][1]); ctx.lineTo(P[b][0], P[b][1]); }
+    ctx.stroke();
+  }
+  P.forEach((p, i) => glowDot(p[0], p[1], [4, 8, 12, 16, 20].includes(i) ? 34 : 16, '120,220,255', 0.9));
+  for (let i = 0; i < 14; i++) { const [a, b] = pick(BONES); bolt(P[a][0], P[a][1], P[b][0], P[b][1], { w: 0.8, nb: 0, disp: 16, glow: 0.6 }); }
+
+  /* ---------- 雷：指尖 → 字；天空 → 字；字 → 四周 ---------- */
+  const t8 = P[8], t20 = P[20];
+  const e1 = nearestEdge(330, 880), e2 = nearestEdge(740, 1390);
+  bolt(t8[0], t8[1], e1[0], e1[1], { w: 3.2, nb: 4, c: '170,170,255' });
+  bolt(t20[0], t20[1], e2[0], e2[1], { w: 3.4, nb: 3, c: '160,185,255' });
+  bolt(t8[0], t8[1], -20, 1180, { w: 1.6, nb: 2, c: '190,140,255' });
+  bolt(t20[0], t20[1], 1100, 1470, { w: 1.5, nb: 2 });
+  const e3 = nearestEdge(560, 380); bolt(1000, -20, e3[0], e3[1], { w: 2.6, nb: 4, c: '200,150,255' });
+  const e4 = nearestEdge(960, 1000); bolt(e4[0], e4[1], 1100, 760, { w: 1.6, nb: 2 });
+  const e5 = nearestEdge(130, 520); bolt(e5[0], e5[1], -20, 300, { w: 1.4, nb: 2, c: '190,140,255' });
+  const e6 = nearestEdge(520, 900); const e7 = nearestEdge(560, 960); bolt(e6[0], e6[1], e7[0] + 30, e7[1] + 40, { w: 1.4, nb: 1 });
+  for (const e of [e1, e2, e3]) { glowDot(e[0], e[1], 130, '150,160,255', 0.9); }
+  glowDot(t8[0], t8[1], 90, '150,190,255'); glowDot(t20[0], t20[1], 90, '150,190,255');
+  // 笔画边缘的爬行电流
+  for (let i = 0; i < 90; i++) {
+    const a = pick(edges); let b = null;
+    for (let k = 0; k < 30; k++) { const c = pick(edges), d = Math.hypot(c[0] - a[0], c[1] - a[1]); if (d > 26 && d < 110) { b = c; break; } }
+    if (b) bolt(a[0], a[1], b[0], b[1], { w: R(0.6, 1.2), nb: 0, disp: 18, glow: 0.5, c: pick(['160,175,255', '200,150,255', '140,220,255']) });
+  }
+  // 火花
+  ctx.globalCompositeOperation = 'lighter'; ctx.lineCap = 'round';
+  for (const [cx, cy, n] of [[e1[0], e1[1], 40], [e2[0], e2[1], 40], [e3[0], e3[1], 30], [t8[0], t8[1], 25], [t20[0], t20[1], 25]]) {
+    for (let i = 0; i < n; i++) { const an = R(0, TAU), r0 = R(8, 40), r1 = r0 + R(10, 60); ctx.strokeStyle = `rgba(${pick(['255,255,255', '170,190,255', '220,160,255'])},${R(0.4, 0.95)})`; ctx.lineWidth = R(0.8, 2.2); ctx.beginPath(); ctx.moveTo(cx + Math.cos(an) * r0, cy + Math.sin(an) * r0); ctx.lineTo(cx + Math.cos(an) * r1, cy + Math.sin(an) * r1 + R(0, 14)); ctx.stroke(); }
+  }
+  // 漂浮光点
+  for (let i = 0; i < 36; i++) glowDot(R(0, W), R(140, 1600), R(6, 18), pick(['165,95,255', '90,225,255', '255,85,215']), R(0.25, 0.7));
+
+  /* ---------- 底部暗场 & 暗角 ---------- */
+  ctx.globalCompositeOperation = 'source-over';
+  let g = ctx.createLinearGradient(0, 1640, 0, H); g.addColorStop(0, 'rgba(6,3,13,0)'); g.addColorStop(0.6, 'rgba(6,3,13,0.55)'); g.addColorStop(1, 'rgba(6,3,13,0.9)');
+  ctx.fillStyle = g; ctx.fillRect(0, 1640, W, H - 1640);
+  g = ctx.createRadialGradient(W / 2, H * 0.48, W * 0.45, W / 2, H * 0.48, H * 0.72); g.addColorStop(0, 'rgba(0,0,0,0)'); g.addColorStop(1, 'rgba(0,0,0,0.75)');
+  ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+
+  /* ---------- 排版 ---------- */
+  const ink = a => `rgba(236,228,255,${a})`;
+  ctx.textBaseline = 'alphabetic';
+  // 顶部信息栏
+  ctx.textAlign = 'left'; ctx.fillStyle = ink(0.78); ctx.font = `600 17px ${CINZEL}`; ctx.letterSpacing = '6px';
+  ctx.fillText('INTERACTIVE  GESTURE  SORCERY', 72, 104);
+  ctx.textAlign = 'right'; ctx.fillText('VOL. 01 — MMXXVI', 1008, 104);
+  ctx.letterSpacing = '0px';
+  ctx.strokeStyle = ink(0.28); ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(72, 128); ctx.lineTo(1008, 128); ctx.stroke();
+  for (let i = 0; i <= 24; i++) { const x = 72 + i * 39; ctx.beginPath(); ctx.moveTo(x, 128); ctx.lineTo(x, i % 6 ? 133 : 140); ctx.stroke(); }
+  // 竖排短句
+  const vtext = (s, x, y, size, a, gap, weight = 300) => { ctx.font = `${weight} ${size}px ${SERIF}`; ctx.fillStyle = ink(a); ctx.textAlign = 'center'; [...s].forEach((ch, i) => ctx.fillText(ch, x, y + i * (size + gap))); };
+  vtext('以手为印', 1000, 240, 28, 0.82, 12);
+  vtext('以光为咒', 958, 240, 28, 0.82, 12);
+  ctx.fillStyle = ink(0.5); ctx.fillRect(979, 240 + 4 * 40 + 18, 1, 90);
+  vtext('暗处的雷与火　已等你很久', 82, 1180, 19, 0.55, 9);
+  ctx.save(); ctx.translate(46, 980); ctx.rotate(-Math.PI / 2); ctx.textAlign = 'left'; ctx.font = `400 13px ${CINZEL}`; ctx.letterSpacing = '5px'; ctx.fillStyle = ink(0.42);
+  ctx.fillText('N° 0721 · MEDIAPIPE · CANVAS · WEB AUDIO', 0, 0); ctx.restore(); ctx.letterSpacing = '0px';
+  // 字旁小注
+  ctx.textAlign = 'left'; ctx.font = `400 15px ${CINZEL}`; ctx.letterSpacing = '4px'; ctx.fillStyle = 'rgba(190,160,255,0.85)';
+  ctx.fillText('MI · 秘', 108, 330); ctx.textAlign = 'right'; ctx.fillText('JING · 境', 1010, 1400); ctx.letterSpacing = '0px';
+
+  // 底部：名称
+  ctx.textAlign = 'left'; ctx.font = `900 74px ${SERIF}`; ctx.letterSpacing = '16px';
+  ctx.save(); ctx.shadowColor = 'rgba(165,95,255,0.8)'; ctx.shadowBlur = 28; ctx.fillStyle = '#f6f0ff'; ctx.fillText('秘境召唤', 70, 1752); ctx.restore();
+  ctx.letterSpacing = '5px'; ctx.font = `400 15px ${CINZEL}`; ctx.fillStyle = ink(0.7);
+  ctx.fillText('MIJING · A GESTURE-SUMMONED RITUAL', 72, 1792);
+  ctx.letterSpacing = '3px'; ctx.font = `300 19px ${SERIF}`; ctx.fillStyle = ink(0.62);
+  ctx.fillText('举起你的手　手势即咒语　实时粒子与程序化声音', 72, 1840);
+  ctx.letterSpacing = '0px';
+  // 底部：七种法术
+  ctx.textAlign = 'right'; ctx.font = `600 13px ${CINZEL}`; ctx.letterSpacing = '5px'; ctx.fillStyle = 'rgba(190,160,255,0.9)';
+  ctx.fillText('VII SPELLS', 1008, 1660);
+  ctx.font = `500 22px ${SERIF}`; ctx.letterSpacing = '4px'; ctx.fillStyle = ink(0.88);
+  ctx.fillText('焚星 · 星尘 · 雷殛', 1008, 1700);
+  ctx.fillText('破界 · 星爆 · 黑渊', 1008, 1738);
+  ctx.fillText('紫晶核', 1008, 1776);
+  ctx.letterSpacing = '0px';
+  ctx.strokeStyle = ink(0.28); ctx.beginPath(); ctx.moveTo(72, 1872); ctx.lineTo(1008, 1872); ctx.stroke();
+  ctx.textAlign = 'right'; ctx.font = `400 12px ${CINZEL}`; ctx.letterSpacing = '4px'; ctx.fillStyle = ink(0.4);
+  ctx.fillText('WEAR HEADPHONES · ENTER THE VEIL', 1008, 1898);
+  ctx.textAlign = 'left'; ctx.fillText('秘境 · MIJING', 72, 1898); ctx.letterSpacing = '0px';
+
+  /* ---------- 胶片颗粒 ---------- */
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  const id = ctx.getImageData(0, 0, cv.width, cv.height), d = id.data;
+  for (let i = 0; i < d.length; i += 4) { const n = (rnd() - 0.5) * 18; d[i] += n; d[i + 1] += n; d[i + 2] += n; }
+  ctx.putImageData(id, 0, 0);
+  window.__done = true;
+}
+Promise.all([
+  document.fonts.load(`900 540px "Noto Serif SC"`, '秘境召唤'), document.fonts.load(`300 28px "Noto Serif SC"`, '以手为印光咒暗处的雷与火已等你很久举起手势即语实时粒子程序化声音'),
+  document.fonts.load(`500 22px "Noto Serif SC"`, '焚星尘雷殛破界爆黑渊紫晶核'), document.fonts.load('600 17px Cinzel', 'ABC'), document.fonts.load('400 15px Cinzel', 'ABC'),
+]).finally(() => document.fonts.ready.then(draw));
+</script>
+</body>
+</html>

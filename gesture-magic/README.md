@@ -1,4 +1,4 @@
-# 秘境召唤 · ARCANUM — 手势召唤粒子魔法
+# 秘境召唤 — 手势召唤粒子魔法
 
 这是一个网页摄像头互动程序：用 MediaPipe 识别手势，然后在你的手上召唤火焰、星尘、闪电、黑洞和等离子核。所有特效都用 Canvas 实时绘制，背景音乐和音效全部由 Web Audio 实时合成，不需要任何素材文件。
 
@@ -41,3 +41,7 @@ python3 -m http.server 8000     # 或 npx serve .
 
 - 手势识别使用 `@mediapipe/tasks-vision` HandLandmarker（最多 2 只手，GPU 加速，失败时自动退回 CPU），完全在本地运行，画面不会上传。
 - 页面是单个 HTML 文件，没有构建步骤。
+
+## 海报
+
+`poster/mijing-poster-2160x3840.png` 是 9:16 的宣传海报（2160×3840）。它由 `poster/poster.html` 用 Canvas 绘制，用的随机种子是固定的，所以每次画出来都一样；在浏览器里打开就能重新生成。

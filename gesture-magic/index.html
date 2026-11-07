@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>秘境召唤 · Arcanum</title>
+<title>秘境召唤</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Noto+Serif+SC:wght@400;700&display=swap" rel="stylesheet">
 <style>
@@ -47,8 +47,8 @@ h2{margin:0;font-family:Cinzel,serif;font-weight:400;font-size:clamp(11px,2.6vw,
 /* ---------- HUD ---------- */
 #hud{position:fixed;left:0;right:0;top:0;display:flex;align-items:flex-start;justify-content:space-between;
   padding:calc(14px + env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) 14px max(16px,env(safe-area-inset-left,0px));z-index:5;pointer-events:none;transition:opacity .6s}
-#brand{font-family:Cinzel,serif;letter-spacing:.4em;font-size:14px;color:var(--dim)}
-#brand span{display:block;font-family:"Noto Serif SC",serif;letter-spacing:.6em;font-size:11px;margin-top:4px;opacity:.7}
+#brand{font-family:"Noto Serif SC",serif;letter-spacing:.5em;font-size:14px;color:var(--dim)}
+#brand span{display:block;font-family:Cinzel,serif;letter-spacing:.35em;font-size:10px;margin-top:4px;opacity:.7}
 #status{margin-top:8px;font-size:12px;letter-spacing:.15em;color:rgba(126,240,255,.7)}
 #ctrl{display:flex;gap:8px;pointer-events:auto}
 #ctrl button{width:38px;height:38px;border-radius:50%;border:1px solid rgba(185,139,255,.35);
@@ -87,7 +87,7 @@ body.hideui #hud,body.hideui #grimoire{opacity:0}
 <div id="intro">
   <div class="orb"><i></i><i></i><i></i><i></i><b>✦ ARCANA ✦</b></div>
   <h1>秘境召唤</h1>
-  <h2>ARCANUM · GESTURE SORCERY</h2>
+  <h2>MIJING · GESTURE SORCERY</h2>
   <p class="lore">以手为印，以光为咒<br>暗处的雷与火，已等你很久</p>
   <button id="go">唤 醒</button>
   <button id="mouseBtn" class="ghost">没有摄像头？以鼠标施法</button>
@@ -95,7 +95,7 @@ body.hideui #hud,body.hideui #grimoire{opacity:0}
 </div>
 
 <div id="hud">
-  <div><div id="brand">ARCANUM<span>秘境召唤</span></div><div id="status"></div></div>
+  <div><div id="brand">秘境召唤<span>GESTURE SORCERY</span></div><div id="status"></div></div>
   <div id="ctrl">
     <button id="bSound" title="声音 (M)">♪</button>
     <button id="bBones" title="手部骨骼 (B)">☍</button>
@@ -109,7 +109,7 @@ body.hideui #hud,body.hideui #grimoire{opacity:0}
 
 <script type="module">
 /* =====================================================================
-   ARCANUM · 秘境召唤 —— MediaPipe 手势 + Canvas 粒子 / 闪电 + Web Audio 程序化配乐
+   秘境召唤 —— MediaPipe 手势 + Canvas 粒子 / 闪电 + Web Audio 程序化配乐
    ===================================================================== */
 const CAM_ALLOWED = true;   // 在线沙箱版本会设为 false（仅触屏/鼠标施法）
 const TOUCH = matchMedia('(pointer: coarse)').matches;
