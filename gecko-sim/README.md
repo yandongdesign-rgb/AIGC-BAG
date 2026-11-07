@@ -4,6 +4,9 @@
 
 ## 直接使用
 
+> ⚠️ 在 GitHub 网页上点开 `.html` 只会看到源代码，或者只有界面没有壁虎。GitHub 不会运行页面里的脚本，微信和手机的文件预览也不会。
+> 请点 GitHub 的 **Download raw file** 把文件下载到电脑，再用 Chrome / Edge / Safari 打开。
+
 双击打开 **`Gekko-GX4-Simulator.html`** 即可，Chrome、Edge、Safari、Firefox 都能用。
 
 - 单个文件，three.js 已内联，**离线可用**，不用安装，也不用起服务器。

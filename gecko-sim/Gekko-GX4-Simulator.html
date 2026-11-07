@@ -86,6 +86,10 @@ body.cap *{transition:none!important}
 #footer{position:absolute;left:20px;right:20px;top:700px;display:flex;justify-content:space-between;font-size:8.5px;letter-spacing:.2em;color:var(--mute)}
 #help{position:absolute;right:20px;top:688px;font-size:8px;letter-spacing:.14em;color:#b3ada2}
 svg text{font-family:var(--mono)}
+#boot{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);width:min(440px,calc(100% - 32px));background:#fbfaf7;border:1px solid var(--line);border-left:3px solid var(--or);padding:16px 18px;font-size:12px;line-height:1.7;color:var(--ink);z-index:5}
+#boot b{display:block;font-family:var(--sans);font-size:15px;margin-bottom:6px}
+#boot span{color:#6b665d}
+#boot code{display:none;margin-top:8px;color:#c42d00;font-size:11px;word-break:break-all}
 </style>
 </head>
 <body>
@@ -203,6 +207,11 @@ svg text{font-family:var(--mono)}
   <div id="footer"><span>FIELD SIMULATOR &nbsp;·&nbsp; PROCEDURAL MODEL &nbsp;·&nbsp; 4 LIMBS &nbsp;·&nbsp; 2 OPTICS &nbsp;·&nbsp; 1 TAIL</span><span>GEKKO ROBOTICS · VERTICAL LAB //////</span></div>
 </div>
 <div id="fade"></div>
+<div id="boot"><b>正在加载 3D 机械壁虎…</b><span>如果一直停在这里：请把文件下载到本地，用 Chrome / Edge / Safari 浏览器打开。<br>GitHub 代码页、微信或手机的文件预览不会运行脚本，所以只显示界面、没有壁虎。</span><code id="bootErr"></code></div>
+<script>
+window.__bootErr=function(m){var e=document.getElementById('bootErr');if(e){e.textContent='错误：'+m;e.style.display='block';}};
+window.addEventListener('error',function(e){window.__bootErr(e.message||String(e));});
+</script>
 
 <script>/**
  * @license
@@ -224,7 +233,9 @@ const CAPTURE=Q.has('capture');if(CAPTURE)document.body.classList.add('cap');
 
 /* ---------------- renderer / scene ---------------- */
 const canvas=document.getElementById('gl');
-const renderer=new THREE.WebGLRenderer({canvas,antialias:true,preserveDrawingBuffer:CAPTURE});
+let renderer;
+try{renderer=new THREE.WebGLRenderer({canvas,antialias:true,preserveDrawingBuffer:CAPTURE});}
+catch(err){window.__bootErr('浏览器无法创建 WebGL（请开启硬件加速或换用 Chrome/Edge）');throw err;}
 renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));
 renderer.outputEncoding=THREE.sRGBEncoding;
 renderer.toneMapping=THREE.LinearToneMapping;
@@ -707,6 +718,7 @@ function tick(dt,noRender){
 
   if(noRender)return;
   renderer.render(scene,camera);
+  if(!booted){booted=true;const b=document.getElementById('boot');if(b)b.remove();}
   updateLabels(P);
   updateHUD(dt,P,pi,tIn,speed,freq);
 }
@@ -732,7 +744,7 @@ function updateLabels(P){
   }
 }
 
-let hudAcc=0;
+let hudAcc=0,booted=false;
 function tag(el,txt,cls){el.textContent=txt;el.className='tag'+(cls?' '+cls:'');}
 function updateHUD(dt,P,pi,tIn,speed,freq){
   // timeline every frame
