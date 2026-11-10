@@ -18,3 +18,9 @@ View your app in AI Studio: https://ai.studio/apps/drive/1IfuHTVSCR_N_24nvoxO-Bw
 2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
 3. Run the app:
    `npm run dev`
+
+---
+
+## 🏝 潮汐之岛（手势漫游海岛）
+
+见 [`island/`](island/README.md)：`cd island && python3 -m http.server 8080` 后打开 http://localhost:8080 。

@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<title>潮汐之岛 · Tide Island</title>
+<style>
+  :root { --glass: rgba(14, 28, 40, 0.42); --line: rgba(255, 255, 255, 0.18); --text: #f3f7fa; --accent: #7ff5d4; --warm: #ffcf8a; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; overflow: hidden; background: #0b1520; color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", "Segoe UI", Roboto, sans-serif; user-select: none; -webkit-user-select: none; }
+  canvas#scene { position: fixed; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; }
+  .glass { background: var(--glass); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border: 1px solid var(--line); border-radius: 14px; }
+  #hud { position: fixed; inset: 0; pointer-events: none; display: none; }
+  #hud.on { display: block; }
+  #hud .pe { pointer-events: auto; }
+  #topleft { position: absolute; left: 16px; top: 16px; padding: 10px 14px; min-width: 190px; }
+  #clock { font-size: 26px; font-weight: 600; letter-spacing: 1px; font-variant-numeric: tabular-nums; }
+  #weatherLbl { font-size: 14px; opacity: .9; margin-top: 2px; }
+  #status { font-size: 12px; opacity: .8; margin-top: 6px; line-height: 1.6; }
+  .bar { height: 5px; border-radius: 3px; background: rgba(255,255,255,.15); overflow: hidden; margin-top: 3px; width: 160px; }
+  .bar > i { display: block; height: 100%; background: linear-gradient(90deg, #6fd3ff, #3a8bff); width: 0%; }
+  #minimap { position: absolute; right: 16px; top: 16px; width: 170px; height: 170px; border-radius: 50%; border: 2px solid var(--line); box-shadow: 0 6px 24px rgba(0,0,0,.3); }
+  #reticle { position: absolute; width: 26px; height: 26px; margin: -13px 0 0 -13px; left: 50%; top: 50%; border-radius: 50%; border: 2px solid rgba(255,255,255,.75); transition: transform .12s, border-color .12s; }
+  #reticle::after { content: ''; position: absolute; left: 50%; top: 50%; width: 4px; height: 4px; margin: -2px; background: #fff; border-radius: 50%; }
+  #reticle.target { border-color: var(--warm); transform: scale(1.35); }
+  #reticle.hand { border-color: var(--accent); }
+  #hint { position: absolute; left: 50%; top: calc(50% + 34px); transform: translateX(-50%); padding: 6px 12px; font-size: 13px; white-space: nowrap; display: none; }
+  #power { position: absolute; left: 50%; bottom: 120px; width: 220px; height: 8px; margin-left: -110px; border-radius: 4px; background: rgba(255,255,255,.2); overflow: hidden; display: none; }
+  #power > i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, #ffe08a, #ff7a3d); }
+  #bag { position: absolute; left: 50%; bottom: 16px; transform: translateX(-50%); display: flex; gap: 6px; padding: 8px 10px; flex-wrap: wrap; justify-content: center; max-width: calc(100% - 32px); }
+  #bag .slot { min-width: 54px; padding: 4px 8px; border-radius: 10px; background: rgba(255,255,255,.08); text-align: center; font-size: 12px; cursor: pointer; border: 1px solid transparent; }
+  #bag .slot:hover { border-color: var(--warm); }
+  #bag .slot b { display: block; font-size: 20px; }
+  #bag .empty { font-size: 12px; opacity: .7; padding: 6px; }
+  #holding { position: absolute; left: 50%; bottom: 92px; transform: translateX(-50%); font-size: 13px; padding: 5px 12px; display: none; }
+  #toasts { position: absolute; left: 50%; top: 18px; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 8px; width: min(520px, calc(100% - 420px)); min-width: 260px; }
+  .toast { padding: 9px 16px; font-size: 14px; animation: tin .35s ease-out; text-align: center; }
+  .toast.ach { border-color: rgba(255, 207, 138, .7); background: rgba(60, 40, 10, .55); }
+  .toast.out { opacity: 0; transform: translateY(-8px); transition: all .5s; }
+  @keyframes tin { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: none; } }
+  #camwrap { position: absolute; right: 16px; bottom: 16px; width: 240px; display: none; overflow: hidden; padding: 0; }
+  #camwrap canvas { display: block; width: 240px; height: 180px; }
+  #gestureLbl { padding: 6px 10px; font-size: 13px; text-align: center; }
+  #video { display: none; }
+  #panelBtn { position: absolute; right: 16px; top: 196px; padding: 7px 12px; font-size: 13px; cursor: pointer; }
+  #panel { position: absolute; right: 16px; top: 236px; width: 250px; padding: 12px; display: none; font-size: 13px; }
+  #panel h4 { margin: 8px 0 6px; font-size: 12px; opacity: .7; font-weight: 500; }
+  #panel .row { display: flex; flex-wrap: wrap; gap: 5px; }
+  #panel button, .btn { background: rgba(255,255,255,.1); color: var(--text); border: 1px solid var(--line); border-radius: 9px; padding: 5px 8px; font-size: 12px; cursor: pointer; }
+  #panel button.on { background: rgba(127,245,212,.25); border-color: var(--accent); }
+  #panel input[type=range] { width: 100%; }
+  #photos { position: absolute; left: 16px; bottom: 16px; display: flex; flex-direction: column-reverse; gap: 6px; }
+  #photos img { width: 96px; border-radius: 8px; border: 2px solid #fff; box-shadow: 0 4px 14px rgba(0,0,0,.4); cursor: pointer; animation: tin .4s; }
+  #flash { position: fixed; inset: 0; background: #fff; opacity: 0; pointer-events: none; transition: opacity .5s; }
+  #drops { position: fixed; inset: 0; pointer-events: none; overflow: hidden; }
+  .drop { position: absolute; border-radius: 50%; background: radial-gradient(circle at 35% 30%, rgba(255,255,255,.55), rgba(200,220,255,.12) 60%, rgba(255,255,255,0) 70%); box-shadow: inset 0 0 4px rgba(255,255,255,.25); transition: opacity 1.5s, transform 1.5s; }
+  #note { position: fixed; left: 50%; top: 50%; transform: translate(-50%, -50%); width: min(420px, calc(100% - 32px)); padding: 28px 26px; color: #4a3a22; display: none; pointer-events: auto;
+    background: linear-gradient(160deg, #f8ecd0, #ead6a8); border-radius: 6px; box-shadow: 0 20px 60px rgba(0,0,0,.5); font-family: "Kaiti SC", "STKaiti", "KaiTi", serif; font-size: 19px; line-height: 1.8; }
+  #note small { display: block; margin-top: 14px; font-family: inherit; font-size: 13px; opacity: .6; text-align: right; }
+  #help { position: absolute; left: 16px; top: 160px; width: 300px; padding: 12px 14px; font-size: 12.5px; line-height: 1.75; display: none; }
+  #help b { color: var(--warm); font-weight: 600; }
+  #sitBadge { position: absolute; left: 50%; top: 40%; transform: translate(-50%, -50%); padding: 8px 16px; font-size: 15px; display: none; }
+  #vignette { position: fixed; inset: 0; pointer-events: none; background: radial-gradient(ellipse at center, rgba(0,0,0,0) 55%, rgba(0,0,0,.35) 100%); }
+  #start { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; padding: 16px; background: radial-gradient(ellipse at 50% 30%, rgba(255,190,120,.25), rgba(5,15,30,.85) 70%); z-index: 10; }
+  #start .card { max-width: 640px; width: 100%; padding: 28px 28px 24px; text-align: center; }
+  #start h1 { margin: 0; font-size: 40px; letter-spacing: 6px; font-weight: 600; }
+  #start h1 span { display: block; font-size: 14px; letter-spacing: 6px; opacity: .65; font-weight: 400; margin-top: 4px; }
+  #start p { opacity: .85; line-height: 1.7; font-size: 14px; }
+  #start .btns { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin: 18px 0 14px; }
+  #start .big { font-size: 16px; padding: 12px 20px; border-radius: 12px; cursor: pointer; color: #082018; background: linear-gradient(135deg, #8ff7da, #57c7ff); border: 0; font-weight: 600; }
+  #start .big.alt { background: rgba(255,255,255,.12); color: var(--text); border: 1px solid var(--line); }
+  #start .big:disabled { opacity: .5; cursor: wait; }
+  #guide { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 8px; text-align: left; font-size: 12.5px; margin-top: 8px; }
+  #guide div { padding: 8px 10px; border-radius: 10px; background: rgba(255,255,255,.06); }
+  #guide em { font-style: normal; font-size: 20px; margin-right: 6px; }
+  #loadMsg { font-size: 13px; color: var(--accent); min-height: 18px; }
+  #touch { position: absolute; inset: 0; display: none; }
+  #touch .tb { position: absolute; width: 58px; height: 58px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 22px; pointer-events: auto; }
+  #joy { position: absolute; left: 24px; bottom: 110px; width: 120px; height: 120px; border-radius: 50%; pointer-events: auto; }
+  #joy i { position: absolute; left: 50%; top: 50%; width: 48px; height: 48px; margin: -24px; border-radius: 50%; background: rgba(255,255,255,.35); }
+  @media (max-width: 760px) {
+    #minimap { width: 110px; height: 110px; }
+    #panelBtn { top: 134px; }
+    #panel { top: 172px; }
+    #toasts { width: calc(100% - 32px); top: 150px; }
+    #topleft { min-width: 0; padding: 8px 10px; }
+    #clock { font-size: 20px; }
+    #camwrap, #camwrap canvas { width: 160px; } #camwrap canvas { height: 120px; }
+    #photos img { width: 64px; }
+    #start h1 { font-size: 30px; }
+  }
+</style>
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/",
+    "@mediapipe/tasks-vision": "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/vision_bundle.mjs"
+  }
+}
+</script>
+</head>
+<body>
+<canvas id="scene"></canvas>
+<div id="vignette"></div>
+<div id="drops"></div>
+
+<div id="hud">
+  <div id="topleft" class="glass">
+    <div id="clock">15:00</div>
+    <div id="weatherLbl">☀️ 晴朗</div>
+    <div id="status">
+      <div id="placeLbl">🏝 沙滩</div>
+      <div>💧 湿身程度 <div class="bar"><i id="wetBar"></i></div></div>
+    </div>
+  </div>
+  <canvas id="minimap" width="170" height="170"></canvas>
+  <div id="panelBtn" class="glass pe">⚙️ 天气与时间</div>
+  <div id="panel" class="glass pe">
+    <h4>天气（自动 / 手动）</h4>
+    <div class="row" id="wxBtns"></div>
+    <h4>时间 <span id="todLbl"></span></h4>
+    <input type="range" id="todSlider" min="0" max="24" step="0.05" />
+    <div class="row" id="speedBtns"></div>
+    <h4>音量</h4>
+    <div>音乐 <input type="range" id="volMusic" min="0" max="1" step="0.01" value="0.42" /></div>
+    <div>环境 <input type="range" id="volAmb" min="0" max="1.5" step="0.01" value="0.85" /></div>
+    <div>音效 <input type="range" id="volSfx" min="0" max="1.5" step="0.01" value="0.9" /></div>
+    <h4>画质</h4>
+    <div class="row"><button id="qLow">流畅</button><button id="qHigh" class="on">高清</button><button id="helpBtn">操作说明</button></div>
+  </div>
+  <div id="help" class="glass pe"></div>
+  <div id="reticle"></div>
+  <div id="hint" class="glass"></div>
+  <div id="holding" class="glass"></div>
+  <div id="power"><i></i></div>
+  <div id="bag" class="glass pe"><span class="empty">🎒 背包是空的 · 拾起物品后可收进背包</span></div>
+  <div id="toasts"></div>
+  <div id="photos" class="pe"></div>
+  <div id="sitBadge" class="glass">🧘 坐下休息中 · 时间流逝加快 · 移动即可起身</div>
+  <div id="camwrap" class="glass"><canvas id="handCanvas" width="320" height="240"></canvas><div id="gestureLbl">等待手势…</div></div>
+  <div id="touch">
+    <div id="joy" class="glass"><i></i></div>
+    <div class="tb glass" data-act="grab" style="right:24px;bottom:150px">✋</div>
+    <div class="tb glass" data-act="use" style="right:96px;bottom:110px">✨</div>
+    <div class="tb glass" data-act="jump" style="right:24px;bottom:80px">⤒</div>
+    <div class="tb glass" data-act="store" style="right:168px;bottom:80px">🎒</div>
+    <div class="tb glass" data-act="photo" style="right:96px;bottom:186px">📷</div>
+  </div>
+</div>
+<video id="video" playsinline muted></video>
+<div id="note"></div>
+<div id="flash"></div>
+
+<div id="start">
+  <div class="card glass">
+    <h1>潮汐之岛<span>TIDE ISLAND · 一座会呼吸的海岛</span></h1>
+    <p>日升日落、风起云涌、骤雨雷暴、雨后彩虹。<br/>漫步沙滩，捡拾贝壳与海螺，追逐横行的螃蟹，在崖壁山洞里点起篝火避雨，<br/>把扁石头扔向海面打水漂——用你的双手。</p>
+    <div class="btns">
+      <button class="big" id="startGesture">🖐 手势模式（摄像头）</button>
+      <button class="big alt" id="startMouse">⌨️ 键鼠 / 触屏模式</button>
+    </div>
+    <div id="loadMsg">正在生成海岛…</div>
+    <div id="guide">
+      <div><em>🖐</em>张开手掌：前进<br/>手掌偏左/右：转向</div>
+      <div><em>☝️</em>食指：瞄准 / 原地转头</div>
+      <div><em>🤏</em>捏合或握拳：拾取</div>
+      <div><em>💨</em>握着时张开手并甩出：投掷</div>
+      <div><em>✌️</em>剪刀手：拍照</div>
+      <div><em>👍</em>点赞：跳跃</div>
+      <div><em>👎</em>倒赞：收进背包 / 坐下</div>
+      <div><em>🤟</em>摇滚：使用物品 / 呼唤海鸥</div>
+    </div>
+  </div>
+</div>
+<script type="module" src="./js/main.js"></script>
+</body>
+</html>
