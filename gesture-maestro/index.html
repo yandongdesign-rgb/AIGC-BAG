@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>弦光指挥台</title>
+<style>
+:root{
+  /* 布局：全屏 WebGL 画布，四角极小读数，开场一张居中卡片 */
+  color-scheme: dark;
+  --ink:#f3ead9;
+  --ink-dim:rgba(243,234,217,.52);
+  --ink-faint:rgba(243,234,217,.22);
+  --night:#07040a;
+  --accent:#ffb84d;
+  --panel:rgba(14,9,16,.62);
+  --display:"Songti SC","STSong","Noto Serif SC","Source Han Serif SC","SimSun",serif;
+  --body:"PingFang SC","Microsoft YaHei","Noto Sans SC","Helvetica Neue",Arial,sans-serif;
+}
+:root[data-style="1"]{ --accent:#4de4ff; --ink:#e6f1ff; --ink-dim:rgba(230,241,255,.55); --ink-faint:rgba(230,241,255,.22); --panel:rgba(6,9,22,.62); }
+*{box-sizing:border-box}
+html,body{height:100%;margin:0;background:var(--night);color:var(--ink);font-family:var(--body);overflow:hidden;-webkit-font-smoothing:antialiased}
+canvas#gl{position:fixed;inset:0;width:100%;height:100%;display:block;cursor:crosshair}
+.hud{position:fixed;font-size:12px;letter-spacing:.08em;color:var(--ink-dim);pointer-events:none;transition:opacity .6s;font-variant-numeric:tabular-nums}
+.hud.tl{top:20px;left:24px;font-family:var(--display);font-size:15px;letter-spacing:.4em;color:var(--ink)}
+.hud.tr{top:20px;right:24px;text-align:right}
+.hud.bl{bottom:22px;left:24px;display:flex;gap:22px;align-items:flex-end}
+.hud.br{bottom:22px;right:24px}
+.read b{display:block;font-family:var(--display);font-weight:400;font-size:22px;letter-spacing:.12em;color:var(--ink);margin-top:4px;min-width:2.2em}
+.read b.flash{color:var(--accent)}
+.seg{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);display:flex;border:1px solid var(--ink-faint);border-radius:999px;overflow:hidden;background:var(--panel);backdrop-filter:blur(8px)}
+.seg button{all:unset;cursor:pointer;padding:8px 20px;font-size:12px;letter-spacing:.25em;color:var(--ink-dim);transition:color .3s,background .3s}
+.seg button[aria-pressed="true"]{color:var(--night);background:var(--accent)}
+.seg button:focus-visible,.btn:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+#toast{position:fixed;left:50%;top:22%;transform:translateX(-50%);font-family:var(--display);font-size:30px;letter-spacing:.4em;color:var(--ink);opacity:0;transition:opacity .5s;pointer-events:none;text-align:center;text-shadow:0 0 30px var(--accent);max-width:90vw}
+#toast small{display:block;font-family:var(--body);font-size:12px;letter-spacing:.12em;color:var(--ink-dim);margin-top:10px;text-shadow:none}
+#toast.on{opacity:1}
+#cam{position:fixed;right:24px;bottom:56px;width:176px;height:132px;object-fit:cover;transform:scaleX(-1);border-radius:6px;opacity:0;pointer-events:none;transition:opacity .4s;border:1px solid var(--ink-faint)}
+#cam.on{opacity:.55}
+#intro{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;padding:16px;background:radial-gradient(ellipse at center,rgba(7,4,10,.35),rgba(7,4,10,.82));transition:opacity .7s}
+#intro.off{opacity:0;pointer-events:none}
+.card{max-width:520px;width:100%;max-height:100%;overflow:auto;padding:8px}
+.card h1{font-family:var(--display);font-weight:400;font-size:44px;letter-spacing:.3em;margin:0 0 10px;text-wrap:balance}
+.card p.lead{margin:0 0 26px;color:var(--ink-dim);font-size:14px;line-height:1.8}
+dl{display:grid;grid-template-columns:auto 1fr;gap:10px 20px;margin:0 0 28px;font-size:13px;line-height:1.6}
+dt{color:var(--accent);letter-spacing:.1em;white-space:nowrap}
+dd{margin:0;color:var(--ink-dim)}
+.row{display:flex;gap:14px;flex-wrap:wrap;align-items:center}
+.btn{all:unset;cursor:pointer;padding:12px 30px;border-radius:999px;font-size:14px;letter-spacing:.3em;background:var(--accent);color:var(--night)}
+.btn.ghost{background:none;color:var(--ink-dim);border:1px solid var(--ink-faint)}
+.btn[disabled]{opacity:.5;cursor:progress}
+.fine{margin-top:20px;font-size:11px;color:var(--ink-faint);line-height:1.7}
+kbd{font-family:inherit;border:1px solid var(--ink-faint);border-radius:3px;padding:0 5px;margin:0 2px;color:var(--ink-dim)}
+body.idle .hud,body.idle .seg{opacity:.0}
+</style>
+</head>
+<body>
+<canvas id="gl"></canvas>
+<video id="cam" playsinline muted></video>
+
+<div class="hud tl">弦光</div>
+<div class="hud tr" id="stat">待机</div>
+<div class="hud bl">
+  <div class="read">音色<b id="rTimbre">弦乐</b></div>
+  <div class="read">和弦<b id="rChord">D</b></div>
+  <div class="read">速度<b id="rBpm">--</b></div>
+</div>
+<div class="hud br"><kbd>S</kbd>风格 <kbd>C</kbd>画面 <kbd>F</kbd>全屏 <kbd>H</kbd>说明</div>
+<div class="seg" role="group" aria-label="音乐风格">
+  <button id="b0" aria-pressed="true">交响</button>
+  <button id="b1" aria-pressed="false">电子</button>
+</div>
+<div id="toast"></div>
+
+<div id="intro">
+  <div class="card">
+    <h1>弦光指挥台</h1>
+    <p class="lead">抬手即是指挥棒。摄像头识别双手，挥动生成旋律、节拍与光。</p>
+    <dl>
+      <dt>挥拍</dt><dd>手向下一顿即一拍：触发鼓点与和声，花在落点绽放。连续挥拍决定速度。</dd>
+      <dt>高度与速度</dt><dd>手越高音越高，挥得越快音区越亮、力度越强，粒子越密。</dd>
+      <dt>开合</dt><dd>握拳、半开、张开切换三种音色，同时改变粒子的大小与散开程度。</dd>
+      <dt>另一只手</dt><dd>高度选择和弦，开合控制乐队厚度。双手合拢停留片刻，切换交响与电子。</dd>
+    </dl>
+    <div class="row">
+      <button class="btn" id="go">开始指挥</button>
+      <button class="btn ghost" id="goMouse">用鼠标试玩</button>
+    </div>
+    <p class="fine">画面只在本机处理，不会上传。建议 Chrome 桌面版，手距摄像头 0.5 到 1.5 米，光线均匀。<br>鼠标试玩：移动即挥动，向下一顿为一拍，按住左键为握拳，滚轮调节开合。</p>
+  </div>
+</div>
+
+<script>
+'use strict';
+/* ============================================================
+   状态
+   ============================================================ */
+const $=id=>document.getElementById(id);
+const clamp=(v,a=0,b=1)=>v<a?a:v>b?b:v, lerp=(a,b,t)=>a+(b-a)*t, rnd=(a=1,b)=>b===undefined?Math.random()*a:a+Math.random()*(b-a);
+const S={style:0,sm:0,zone:0,chord:0,beatN:0,iv:600,ivs:[],lastBeat:-1e9,lastNote:-1e9,lastIdx:-1,energy:0,
+  mode:'attract',started:false,lat:0,fps:60,muted:false,joinT:0,joinCool:0,pitchT:.5,precise:false};
+const TIMBRE=[['弦乐','木管','铜管'],['拨弦','方波','超锯']];
+const CHORDN=[['D','A','Bm','G'],['Am','F','C','G']];
+const CHORDS=[[[50,57,62,66],[45,57,61,64],[47,54,62,66],[43,55,59,62]],
+              [[45,57,60,64],[41,57,60,65],[48,55,60,64],[43,55,59,62]]];
+const BASS=[[38,33,35,31],[33,29,36,31]];
+const PENT=[[0,2,4,7,9],[0,3,5,7,10]], BASE=[50,45];
+const mtof=m=>440*Math.pow(2,(m-69)/12);
+const scaleNote=i=>{const p=PENT[S.style];i=clamp(i|0,0,19);return BASE[S.style]+12*Math.floor(i/5)+p[i%5]};
+// 调色板：0 交响（金、玫瑰、象牙、紫），1 电子（青、品红、紫、电蓝）
+const PAL=[[[1,.72,.30],[.95,.38,.45],[1,.9,.75],[.55,.3,.75]],
+           [[.2,.9,1],[1,.25,.75],[.5,.35,1],[.25,.45,1]]];
+const BG=[[[.035,.02,.03],[.075,.03,.06]],[[.008,.014,.04],[.03,.02,.085]]];
+const ACC=[[1,.72,.3],[.3,.9,1]];
+function palette(t,out){ // t 任意实数，沿当前风格调色板循环插值，并随风格过渡混合
+  t=((t%1)+1)%1*4;const i=t|0,f=t-i;
+  for(let k=0;k<3;k++){const a=lerp(PAL[0][i][k],PAL[0][(i+1)%4][k],f),b=lerp(PAL[1][i][k],PAL[1][(i+1)%4][k],f);out[k]=lerp(a,b,S.sm)}
+  return out;
+}
+
+/* ============================================================
+   手势：One Euro 滤波 + 速度 + 挥拍检测
+   ============================================================ */
+class OneEuro{
+  constructor(minCut=2,beta=6){this.minCut=minCut;this.beta=beta;this.t=null}
+  reset(){this.t=null}
+  f(x,t){
+    if(this.t===null){this.t=t;this.x=x;this.dx=0;return x}
+    const dt=Math.max((t-this.t)/1000,1e-3);this.t=t;
+    const al=c=>1/(1+1/(2*Math.PI*c*dt));
+    this.dx+=al(1)*((x-this.x)/dt-this.dx);
+    this.x+=al(this.minCut+this.beta*Math.abs(this.dx))*(x-this.x);
+    return this.x;
+  }
+}
+const mkHand=()=>({fx:new OneEuro(),fy:new OneEuro(),fo:new OneEuro(1.2,1.5),x:.5,y:.5,vx:0,vy:0,speed:0,slow:0,open:1,
+  seen:-1e9,t:0,armed:false,peak:0,pts:null,rx:.5,ry:.5,fresh:true});
+const H=[mkHand(),mkHand()];           // 0 主手（旋律、节拍） 1 副手（和声）
+const alive=(h,t)=>t-h.seen<260;
+let aspect=16/9;
+
+function feed(h,x,y,open,t,pts){
+  if(t-h.seen>320){h.fx.reset();h.fy.reset();h.fo.reset();h.vx=h.vy=0;h.armed=false;h.fresh=true;h.t=t;h.x=x;h.y=y}
+  const px=h.x,py=h.y,dt=Math.max((t-h.t)/1000,1e-3);
+  h.x=h.fx.f(x,t);h.y=h.fy.f(y,t);h.open=clamp(h.fo.f(open,t));
+  if(!h.fresh&&t>h.t){const a=1/(1+1/(2*Math.PI*9*dt));h.vx+=a*((h.x-px)/dt-h.vx);h.vy+=a*((h.y-py)/dt-h.vy)}
+  h.speed=Math.hypot(h.vx*aspect,h.vy);
+  h.slow+=clamp(dt*4)*(h.speed-h.slow);
+  h.t=t;h.seen=t;h.pts=pts||null;
+  if(h.fresh){h.rx=h.x;h.ry=h.y;h.fresh=false}
+}
+
+function leadTick(h,t){
+  // 挥拍：向下加速后骤停或回弹的瞬间
+  if(!h.armed){if(h.vy>.9){h.armed=true;h.peak=h.vy}}
+  else{h.peak=Math.max(h.peak,h.vy);
+    if(h.vy<h.peak*.3||h.vy<.15){h.armed=false;if(t-S.lastBeat>230)beat(clamp((h.peak-.9)/2.6),t)}}
+  // 音色分区（带回差，避免抖动）
+  let z=S.zone;const o=h.open;
+  if(z===0&&o>.40)z=1;else if(z===1){if(o<.28)z=0;else if(o>.74)z=2}else if(z===2&&o<.62)z=1;
+  if(z!==S.zone){S.zone=z;flashRead('rTimbre',TIMBRE[S.style][z])}
+  // 音高：高度定音级，速度抬高音区
+  const idx=3+Math.round((1-h.y)*11+clamp(h.slow/3)*3);
+  S.pitchT=(idx-3)/14;
+  if(idx!==S.lastIdx&&h.speed>.18&&t-S.lastNote>75){
+    S.lastIdx=idx;S.lastNote=t;lead(mtof(scaleNote(idx)),clamp(.35+h.speed*.22,0,1));
+  }
+  S.energy+=.15*(clamp(h.speed/2.2)-S.energy);
+  express(t);
+}
+function harmTick(h,t){
+  const c=clamp(Math.floor((1-h.y)*4),0,3);
+  if(c!==S.chord)setChord(c);
+}
+// 输入：若干只手 {x,y,open,pts}（已镜像、归一化）
+function ingest(list,t){
+  if(!list.length)return;
+  if(list.length>=2){
+    list.sort((a,b)=>b.x-a.x);
+    feed(H[0],list[0].x,list[0].y,list[0].open,t,list[0].pts);
+    feed(H[1],list[1].x,list[1].y,list[1].open,t,list[1].pts);
+    // 双手合拢保持：切换风格
+    const d=Math.hypot((H[0].x-H[1].x)*aspect,H[0].y-H[1].y);
+    if(d<.16&&t>S.joinCool){if(!S.joinT)S.joinT=t;else if(t-S.joinT>700){S.joinT=0;S.joinCool=t+2200;setStyle(1-S.style)}}else S.joinT=0;
+  }else{
+    const g=list[0];let s=0,best=.3;
+    for(let i=0;i<2;i++)if(alive(H[i],t)){const d=Math.hypot(H[i].x-g.x,H[i].y-g.y);if(d<best){best=d;s=i}}
+    feed(H[s],g.x,g.y,g.open,t,g.pts);S.joinT=0;
+  }
+  if(alive(H[0],t)&&H[0].seen===t)leadTick(H[0],t);
+  if(alive(H[1],t)&&H[1].seen===t)harmTick(H[1],t);
+}
+
+/* ============================================================
+   音频引擎（Web Audio，全合成）
+   ============================================================ */
+const A={ctx:null};
+function initAudio(){
+  const ctx=A.ctx=new (window.AudioContext||window.webkitAudioContext)({latencyHint:'interactive'});
+  const G=v=>{const g=ctx.createGain();g.gain.value=v;return g};
+  A.master=G(.75);const comp=ctx.createDynamicsCompressor();comp.threshold.value=-14;comp.ratio.value=5;comp.attack.value=.004;comp.release.value=.18;
+  A.an=ctx.createAnalyser();A.an.fftSize=1024;A.an.smoothingTimeConstant=.72;A.fd=new Uint8Array(A.an.frequencyBinCount);
+  A.master.connect(comp).connect(A.an).connect(ctx.destination);
+  const imp=(sec,pw)=>{const n=ctx.sampleRate*sec|0,b=ctx.createBuffer(2,n,ctx.sampleRate);for(let c=0;c<2;c++){const d=b.getChannelData(c);for(let i=0;i<n;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/n,pw)}return b};
+  A.revIn=G(1);A.wet=[G(.55),G(0)];
+  [[3.4,2.6],[1.3,3.2]].forEach((p,i)=>{const c=ctx.createConvolver();c.buffer=imp(p[0],p[1]);A.revIn.connect(c).connect(A.wet[i]).connect(A.master)});
+  A.delIn=G(0);const dl=ctx.createDelay(1);dl.delayTime.value=.3;const fb=G(.36);A.delay=dl;
+  A.delIn.connect(dl);dl.connect(fb).connect(dl);dl.connect(A.master);
+  const nb=ctx.createBuffer(1,ctx.sampleRate,ctx.sampleRate),nd=nb.getChannelData(0);for(let i=0;i<nd.length;i++)nd[i]=Math.random()*2-1;A.noise=nb;
+  A.vib=ctx.createOscillator();A.vib.frequency.value=5.4;A.vibG=G(9);A.vib.connect(A.vibG);A.vib.start();
+  // 和声铺底：4 个音 × 2 个失谐锯齿
+  A.padF=ctx.createBiquadFilter();A.padF.type='lowpass';A.padF.frequency.value=900;A.padF.Q.value=.6;
+  A.padDuck=G(1);A.padG=G(0);A.padF.connect(A.padDuck).connect(A.padG);A.padG.connect(A.master);const ps=G(.5);A.padG.connect(ps).connect(A.revIn);
+  A.pad=[];for(let i=0;i<4;i++)for(let k=0;k<2;k++){const o=ctx.createOscillator();o.type='sawtooth';o.frequency.value=mtof(CHORDS[0][0][i]);o.detune.value=k?6:-6;const g=G(.055);o.connect(g).connect(A.padF);o.start();A.pad.push({o,i,k})}
+  A.leadBus=G(.9);A.leadBus.connect(A.master);const ls=G(.4);A.leadBus.connect(ls).connect(A.revIn);A.leadDel=G(0);A.leadBus.connect(A.leadDel).connect(A.delIn);
+  A.drum=G(.9);A.drum.connect(A.master);A.drumRev=G(.35);A.drum.connect(A.drumRev).connect(A.revIn);
+  applyStyleAudio();
+}
+function voice(p){
+  const ctx=A.ctx,t=p.t||ctx.currentTime,g=ctx.createGain(),f=ctx.createBiquadFilter();
+  f.type='lowpass';f.Q.value=p.q||.7;f.frequency.setValueAtTime(p.f0,t);if(p.f1)f.frequency.exponentialRampToValueAtTime(p.f1,t+p.ft);
+  g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(p.vel,t+p.a);g.gain.setTargetAtTime(p.vel*p.s,t+p.a,p.d);
+  const end=t+p.a+p.h;g.gain.setTargetAtTime(0,end,p.r/4);const stop=end+p.r*1.6;
+  let last;for(const [type,ratio,det,lv] of p.oscs){const o=ctx.createOscillator();o.type=type;o.frequency.value=p.freq*ratio;o.detune.value=det;
+    const og=ctx.createGain();og.gain.value=lv;o.connect(og).connect(f);if(p.vib)A.vibG.connect(o.detune);o.start(t);o.stop(stop);last=o}
+  f.connect(g).connect(p.out||A.leadBus);last.onended=()=>g.disconnect();
+}
+function noiseHit(t,type,freq,vel,dec,q=1){
+  const ctx=A.ctx,s=ctx.createBufferSource();s.buffer=A.noise;s.loop=true;const f=ctx.createBiquadFilter();f.type=type;f.frequency.value=freq;f.Q.value=q;
+  const g=ctx.createGain();g.gain.setValueAtTime(vel,t);g.gain.exponentialRampToValueAtTime(.0008,t+dec);
+  s.connect(f).connect(g).connect(A.drum);s.start(t,Math.random()*.5);s.stop(t+dec+.02);s.onended=()=>g.disconnect();
+}
+function thump(t,f0,f1,drop,vel,dec){
+  const ctx=A.ctx,o=ctx.createOscillator(),g=ctx.createGain();o.frequency.setValueAtTime(f0,t);o.frequency.exponentialRampToValueAtTime(f1,t+drop);
+  g.gain.setValueAtTime(vel,t);g.gain.exponentialRampToValueAtTime(.0008,t+dec);o.connect(g).connect(A.drum);o.start(t);o.stop(t+dec+.02);o.onended=()=>g.disconnect();
+}
+function lead(freq,vel){
+  if(!A.ctx)return;const z=S.zone;
+  if(S.style===0){
+    if(z===0)voice({freq,vel:vel*.42,oscs:[['sawtooth',1,-7,.5],['sawtooth',1,7,.5]],a:.07,h:.28,s:.8,d:.2,r:.55,f0:900+vel*2600,q:.5,vib:1});
+    else if(z===1)voice({freq:freq*2,vel:vel*.5,oscs:[['sine',1,0,.8],['triangle',2,0,.1]],a:.04,h:.2,s:.9,d:.2,r:.35,f0:5200,vib:1});
+    else voice({freq,vel:vel*.45,oscs:[['sawtooth',1,0,.6],['square',.5,0,.22]],a:.035,h:.25,s:.75,d:.15,r:.4,f0:500,f1:1500+vel*3000,ft:.08,q:1.2});
+  }else{
+    if(z===0)voice({freq,vel:vel*.6,oscs:[['triangle',1,0,.8],['sawtooth',1,0,.2]],a:.004,h:.03,s:.25,d:.08,r:.28,f0:3600,f1:500,ft:.16,q:1.5});
+    else if(z===1)voice({freq,vel:vel*.34,oscs:[['square',1,0,.5],['square',2,5,.15]],a:.006,h:.12,s:.6,d:.1,r:.22,f0:4200,f1:1200,ft:.2,q:3});
+    else voice({freq,vel:vel*.36,oscs:[['sawtooth',1,-18,.22],['sawtooth',1,-8,.22],['sawtooth',1,0,.22],['sawtooth',1,8,.22],['sawtooth',1,18,.22]],a:.01,h:.22,s:.8,d:.15,r:.45,f0:1200+vel*6000,q:1});
+  }
+}
+function setChord(c){
+  S.chord=c;$('rChord').textContent=CHORDN[S.style][c];
+  if(!A.ctx)return;const now=A.ctx.currentTime,n=CHORDS[S.style][c];
+  for(const v of A.pad)v.o.frequency.setTargetAtTime(mtof(n[v.i]),now,.05);
+}
+function express(t){
+  if(!A.ctx)return;const now=A.ctx.currentTime,o=H[0].open,thick=alive(H[1],t)?.45+.55*H[1].open:1;
+  A.padG.gain.setTargetAtTime((.3+.7*S.energy)*thick*(S.style?.8:1),now,.08);
+  A.padF.frequency.setTargetAtTime(S.style?300+5200*o*o:500+2300*o,now,.05);
+}
+function applyStyleAudio(){
+  if(!A.ctx)return;const now=A.ctx.currentTime,e=S.style;
+  A.wet[0].gain.setTargetAtTime(e?0:.55,now,.2);A.wet[1].gain.setTargetAtTime(e?.3:0,now,.2);
+  A.leadDel.gain.setTargetAtTime(e?.3:0,now,.2);A.drumRev.gain.setTargetAtTime(e?.08:.4,now,.2);
+  for(const v of A.pad)v.o.detune.setTargetAtTime((v.k?1:-1)*(e?14:6),now,.1);
+  setChord(S.chord);
+}
+// 一拍：更新速度估计，触发打击与伴奏，并在两拍之间自动补细分
+function beat(str,t){
+  const gap=t-S.lastBeat;S.lastBeat=t;
+  if(gap>250&&gap<1600){S.ivs.push(gap);if(S.ivs.length>4)S.ivs.shift();const s=[...S.ivs].sort((a,b)=>a-b);S.iv=s[s.length>>1];$('rBpm').textContent=Math.round(60000/S.iv)}
+  else if(gap>=1600){S.ivs.length=0}
+  const n=S.beatN++;
+  if(!alive(H[1],t)&&n%4===0&&n>0)setChord((S.chord+1)%4);
+  visualBeat(str,n);
+  if(!A.ctx)return;
+  const now=A.ctx.currentTime,iv=S.iv/1000,c=S.chord,root=mtof(BASS[S.style][c]),ch=CHORDS[S.style][c],v=.5+.5*str;
+  lead(mtof(scaleNote(S.lastIdx<0?8:S.lastIdx)),clamp(.5+str*.5));
+  if(S.style===0){
+    if(n%4===0||str>.7){thump(now,root*2.02,root*2,.25,.5*v,1.1);noiseHit(now,'lowpass',260,.35*v,.25)}
+    voice({t:now,freq:root*2,vel:.5*v,oscs:[['triangle',1,0,.8],['sawtooth',1,0,.2]],a:.005,h:.02,s:.3,d:.1,r:.5,f0:1400,f1:300,ft:.25,out:A.drum});
+    for(let k=0;k<2;k++){const m=ch[1+((n*2+k)%3)]+12;
+      voice({t:now+k*iv/2,freq:mtof(m),vel:.2+.12*str,oscs:[['triangle',1,0,.7],['sine',2,0,.3]],a:.004,h:.02,s:.35,d:.12,r:1,f0:4200,f1:900,ft:.4})}
+  }else{
+    thump(now,160,44,.11,.95,.36);noiseHit(now,'highpass',3000,.12,.02);
+    A.padDuck.gain.cancelScheduledValues(now);A.padDuck.gain.setValueAtTime(.3,now);A.padDuck.gain.setTargetAtTime(1,now+.03,.11);
+    if(n%2===1){noiseHit(now,'bandpass',1700,.5*v,.17,.8);noiseHit(now+.012,'bandpass',2100,.3*v,.12,.8)}
+    noiseHit(now+iv/2,'highpass',7500,.26,.07);noiseHit(now+iv/4,'highpass',9000,.1,.03);noiseHit(now+iv*.75,'highpass',9000,.12,.03);
+    for(let k=0;k<2;k++)voice({t:now+k*iv/2,freq:root*(k?4:2),vel:.5,oscs:[['sawtooth',1,0,.6],['square',.5,0,.5]],a:.004,h:Math.min(.12,iv/4),s:.7,d:.05,r:.12,f0:1800,f1:240,ft:.14,q:4,out:A.drum});
+    A.delay.delayTime.setTargetAtTime(clamp(iv*.75,.12,.9),now,.05);
+  }
+}
+
+/* ============================================================
+   WebGL 视觉：粒子流、流光拖尾（帧反馈）、花朵、频谱极光
+   ============================================================ */
+const cv=$('gl');
+const gl=cv.getContext('webgl2',{antialias:false,alpha:false,powerPreference:'high-performance'});
+const VSQ=`#version 300 es
+in vec2 p;out vec2 uv;void main(){uv=p*.5+.5;gl_Position=vec4(p,0.,1.);}`;
+const FS_FADE=`#version 300 es
+precision highp float;in vec2 uv;out vec4 o;uniform sampler2D T;uniform float fade,zoom,sub;uniform vec2 drift;
+void main(){vec2 q=(uv-.5)/zoom+.5+drift;vec3 c=texture(T,q).rgb*fade;o=vec4(max(c-sub,0.),1.);}`;
+const VS_PT=`#version 300 es
+in vec4 a;in vec3 col;uniform float ia,px;out vec4 vc;
+void main(){gl_Position=vec4(a.x*ia,a.y,0.,1.);gl_PointSize=a.z*px;vc=vec4(col,a.w);}`;
+const FS_PT=`#version 300 es
+precision highp float;in vec4 vc;out vec4 o;uniform float shape,sharp;
+void main(){vec2 q=gl_PointCoord*2.-1.;float d=mix(length(q),abs(q.x)+abs(q.y),shape);float m=pow(clamp(1.-d,0.,1.),sharp);o=vec4(vc.rgb*vc.a*m,1.);}`;
+const VS_FL=`#version 300 es
+in vec2 p;out vec2 q;uniform vec2 c;uniform float R,ia;void main(){q=p;gl_Position=vec4((c.x+p.x*R)*ia,c.y+p.y*R,0.,1.);}`;
+const FS_FL=`#version 300 es
+precision highp float;in vec2 q;out vec4 o;uniform float u,n,rot,line,pulse;uniform vec3 cA,cB;
+void main(){float r=length(q);if(r>1.)discard;float a=atan(q.y,q.x)+rot;
+ float bl=1.-pow(1.-min(u*2.8,1.),3.);float fade=1.-smoothstep(.45,1.,u);vec3 col=vec3(0.);
+ for(int i=0;i<3;i++){float fi=float(i);float R=bl*(.92-fi*.27)*(1.+pulse*.08);
+  float e=R*(.38+.62*pow(abs(cos(a*n*.5+fi*3.14159/n+fi*u*.6)),mix(.9,.45,line)));
+  float d=e-r;float fill=smoothstep(0.,.05,d)*(.15+.85*pow(r/max(e,1e-3),2.));
+  float edge=exp(-abs(d)*mix(28.,60.,line));
+  col+=mix(cA,cB,fi*.5)*(fill*mix(.55,.06,line)+edge*mix(.35,.9,line));}
+ col+=cB*exp(-r*r*90.)*bl*1.5;o=vec4(col*fade,1.);}`;
+const FS_OUT=`#version 300 es
+precision highp float;in vec2 uv;out vec4 o;uniform sampler2D S,spec;uniform vec3 bgA,bgB,acc;uniform float bass,asp;
+void main(){vec3 bg=mix(bgA,bgB,smoothstep(0.,1.,uv.y));
+ float sp=texture(spec,vec2(abs(uv.x-.5)*2.,.5)).r;float h=sp*.34+.012;
+ bg+=acc*smoothstep(h,0.,uv.y)*(.18+sp)*.55;
+ vec2 c=uv-.5;c.x*=asp;bg+=acc*bass*.10*exp(-dot(c,c)*3.);
+ vec3 s=texture(S,uv).rgb;vec3 b=textureLod(S,uv,3.).rgb*.5+textureLod(S,uv,5.).rgb*.6;
+ vec3 col=bg+s+b*.65;col=1.-exp(-col*1.35);col*=1.-.4*dot(c,c);o=vec4(col,1.);}`;
+function prog(vs,fs){
+  const p=gl.createProgram();for(const [t,src] of [[gl.VERTEX_SHADER,vs],[gl.FRAGMENT_SHADER,fs]]){const s=gl.createShader(t);gl.shaderSource(s,src);gl.compileShader(s);
+    if(!gl.getShaderParameter(s,gl.COMPILE_STATUS))console.error(gl.getShaderInfoLog(s),src);gl.attachShader(p,s)}
+  gl.bindAttribLocation(p,0,'p');gl.linkProgram(p);const u={};const n=gl.getProgramParameter(p,gl.ACTIVE_UNIFORMS);
+  for(let i=0;i<n;i++){const nm=gl.getActiveUniform(p,i).name;u[nm]=gl.getUniformLocation(p,nm)}return{p,u};
+}
+let P={},quadVAO,ptVAO,ptBuf,specTex,fbo=[],W=1,Hh=1,hdr=false,cur=0;
+const MAXP=9000,STRIDE=7,TRANS=1400;
+const pd=new Float32Array((MAXP+TRANS)*STRIDE);
+// 粒子模拟数据
+const px_=new Float32Array(MAXP),py_=new Float32Array(MAXP),pvx=new Float32Array(MAXP),pvy=new Float32Array(MAXP),
+      plife=new Float32Array(MAXP),pmax=new Float32Array(MAXP),psz=new Float32Array(MAXP),pcol=new Float32Array(MAXP*3);
+let pn=0;const tmpC=[0,0,0];
+function emit(x,y,vx,vy,life,size,ct){
+  let i;if(pn<MAXP)i=pn++;else i=(Math.random()*MAXP)|0;
+  px_[i]=x;py_[i]=y;pvx[i]=vx;pvy[i]=vy;plife[i]=pmax[i]=life;psz[i]=size;palette(ct,tmpC);pcol[i*3]=tmpC[0];pcol[i*3+1]=tmpC[1];pcol[i*3+2]=tmpC[2];
+}
+const flowers=[];
+function visualBeat(str,n){
+  const h=H[0],x=(h.x*2-1)*aspect,y=1-2*h.y,ct=S.pitchT*.6+S.zone*.17;
+  const cA=palette(ct,[0,0,0]),cB=palette(ct+.3,[0,0,0]);
+  flowers.push({x,y,t0:performance.now(),dur:1500+str*900,n:S.style?3+(n%4):5+(n%4),rot:rnd(6.28),R:.16+str*.22+(n%4===0?.06:0),cA,cB});
+  if(flowers.length>18)flowers.shift();
+  const cnt=70+str*230|0;for(let i=0;i<cnt;i++){const a=rnd(6.283),sp=rnd(.35,1.3)*(.6+str);emit(x,y,Math.cos(a)*sp,Math.sin(a)*sp,rnd(.7,1.8),rnd(2,6),ct+rnd(-.1,.1))}
+}
+function initGL(){
+  hdr=!!gl.getExtension('EXT_color_buffer_float');
+  P.fade=prog(VSQ,FS_FADE);P.pt=prog(VS_PT,FS_PT);P.fl=prog(VS_FL,FS_FL);P.out=prog(VSQ,FS_OUT);
+  quadVAO=gl.createVertexArray();gl.bindVertexArray(quadVAO);const qb=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,qb);
+  gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1,1,1]),gl.STATIC_DRAW);gl.enableVertexAttribArray(0);gl.vertexAttribPointer(0,2,gl.FLOAT,false,0,0);
+  ptVAO=gl.createVertexArray();gl.bindVertexArray(ptVAO);ptBuf=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,ptBuf);gl.bufferData(gl.ARRAY_BUFFER,pd.byteLength,gl.DYNAMIC_DRAW);
+  const la=gl.getAttribLocation(P.pt.p,'a'),lc=gl.getAttribLocation(P.pt.p,'col');
+  gl.enableVertexAttribArray(la);gl.vertexAttribPointer(la,4,gl.FLOAT,false,STRIDE*4,0);gl.enableVertexAttribArray(lc);gl.vertexAttribPointer(lc,3,gl.FLOAT,false,STRIDE*4,16);
+  specTex=gl.createTexture();gl.bindTexture(gl.TEXTURE_2D,specTex);gl.pixelStorei(gl.UNPACK_ALIGNMENT,1);
+  gl.texImage2D(gl.TEXTURE_2D,0,gl.R8,64,1,0,gl.RED,gl.UNSIGNED_BYTE,new Uint8Array(64));
+  for(const k of [gl.TEXTURE_MIN_FILTER,gl.TEXTURE_MAG_FILTER])gl.texParameteri(gl.TEXTURE_2D,k,gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);
+  resize();
+}
+function mkTarget(mip){
+  const t=gl.createTexture();gl.bindTexture(gl.TEXTURE_2D,t);
+  gl.texImage2D(gl.TEXTURE_2D,0,hdr?gl.RGBA16F:gl.RGBA8,W,Hh,0,gl.RGBA,hdr?gl.HALF_FLOAT:gl.UNSIGNED_BYTE,null);
+  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,mip?gl.LINEAR_MIPMAP_LINEAR:gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);
+  const f=gl.createFramebuffer();gl.bindFramebuffer(gl.FRAMEBUFFER,f);gl.framebufferTexture2D(gl.FRAMEBUFFER,gl.COLOR_ATTACHMENT0,gl.TEXTURE_2D,t,0);
+  gl.clearColor(0,0,0,1);gl.clear(gl.COLOR_BUFFER_BIT);return{t,f};
+}
+function resize(){
+  const dpr=Math.min(window.devicePixelRatio||1,1.5),w=Math.max(2,cv.clientWidth*dpr|0),h=Math.max(2,cv.clientHeight*dpr|0);
+  if(w===W&&h===Hh&&fbo.length)return;W=cv.width=w;Hh=cv.height=h;aspect=w/h;
+  for(const b of fbo){gl.deleteTexture(b.t);gl.deleteFramebuffer(b.f)}
+  fbo=[mkTarget(false),mkTarget(false),mkTarget(true)];
+}
+window.addEventListener('resize',resize);
+
+const spec=new Uint8Array(64);let bass=0,mid=0,treb=0;
+function readSpectrum(now){
+  if(A.ctx&&S.started){
+    A.an.getByteFrequencyData(A.fd);const hz=A.ctx.sampleRate/A.an.fftSize,N=A.fd.length;
+    for(let i=0;i<64;i++){const b0=Math.max(1,40*Math.pow(400,i/64)/hz|0),b1=Math.min(N-1,Math.max(b0,40*Math.pow(400,(i+1)/64)/hz|0));let s=0;for(let b=b0;b<=b1;b++)s+=A.fd[b];spec[i]=s/(b1-b0+1)}
+  }else for(let i=0;i<64;i++)spec[i]=28+22*Math.sin(now*.0012+i*.33)*Math.sin(now*.0007+i*.11);
+  let a=0,b=0,c=0;for(let i=0;i<64;i++){const v=spec[i]/255;if(i<16)a+=v;else if(i<40)b+=v;else c+=v}
+  bass=a/16;mid=b/24;treb=c/24;
+  gl.bindTexture(gl.TEXTURE_2D,specTex);gl.texSubImage2D(gl.TEXTURE_2D,0,0,0,64,1,gl.RED,gl.UNSIGNED_BYTE,spec);
+}
+
+let lastF=performance.now(),tn=0,frames=0,fpsT=lastF,attractT=0;
+function put(k,x,y,size,al,r,g,b){const o=k*STRIDE;pd[o]=x;pd[o+1]=y;pd[o+2]=size;pd[o+3]=al;pd[o+4]=r;pd[o+5]=g;pd[o+6]=b}
+function frame(now){
+  requestAnimationFrame(frame);
+  const dt=Math.min((now-lastF)/1000,.05);lastF=now;frames++;
+  if(now-fpsT>500){S.fps=Math.round(frames*1000/(now-fpsT));frames=0;fpsT=now;hudStat(now)}
+  resize();readSpectrum(now);
+  S.sm+=(S.style-S.sm)*Math.min(1,dt*3.5);const sm=S.sm;
+
+  // 输入源：鼠标模式每帧补一次采样；待机时由一只"幽灵手"演示
+  if(S.mode==='pointer'&&now-H[0].seen>24)ingest([{x:ptr.x,y:ptr.y,open:ptr.open}],now);
+  if(S.mode==='attract'){
+    const a=now*.0011;ingest([{x:.5+.3*Math.sin(a),y:.5+.22*Math.sin(a*2.03+.5),open:.5+.5*Math.sin(a*.37)}],now);
+    attractT+=dt;
+  }
+  if(S.started&&A.ctx&&!alive(H[0],now)&&now-H[0].seen>1200){S.energy*=.95;A.padG.gain.setTargetAtTime(.1,A.ctx.currentTime,.4)}
+
+  // 发射：粒子流 + 流光拖尾（瞬时亮点，由帧反馈拉成尾迹）
+  tn=0;const pxs=Hh/1080;
+  for(let i=0;i<2;i++){const h=H[i];if(!alive(h,now))continue;
+    const x0=(h.rx*2-1)*aspect,y0=1-2*h.ry,x1=(h.x*2-1)*aspect,y1=1-2*h.y;h.rx=h.x;h.ry=h.y;
+    const sp=Math.min(h.speed,3)/3,op=h.open,vx=h.vx*2*aspect,vy=-h.vy*2,ct=(i?.5:0)+S.pitchT*.6+S.zone*.17;
+    let n=dt*(50+1100*sp*(.3+.7*op)+500*treb);n=(n|0)+(Math.random()<n%1?1:0);
+    for(let k=0;k<n;k++){const f=Math.random(),a=rnd(6.283),s=rnd(.02,.08)+op*rnd(.5)+sm*.1;
+      emit(lerp(x0,x1,f)+rnd(-.01,.01),lerp(y0,y1,f)+rnd(-.01,.01),vx*.22+Math.cos(a)*s,vy*.22+Math.sin(a)*s,rnd(.7,2.4)*(.6+.6*op),rnd(1.6,5)*(.55+op),ct+rnd(-.08,.08))}
+    const d=Math.hypot(x1-x0,y1-y0),m=Math.min(70,1+(d/.006|0));palette(ct,tmpC);
+    for(let k=0;k<m&&tn<TRANS;k++){const f=(k+1)/m;put(MAXP+tn++,lerp(x0,x1,f),lerp(y0,y1,f),(9+16*sp+10*mid)*(.5+.5*op),.28+.5*sp,tmpC[0],tmpC[1],tmpC[2])}
+  }
+  // 模拟：流场 + 阻力，随中频增强扰动
+  const tt=now*.001,flow=(.25+mid*1.6)*lerp(1,.45,sm),drag=Math.exp(-dt*lerp(1.5,.8,sm));
+  for(let i=0;i<pn;){
+    plife[i]-=dt;
+    if(plife[i]<=0){const j=--pn;px_[i]=px_[j];py_[i]=py_[j];pvx[i]=pvx[j];pvy[i]=pvy[j];plife[i]=plife[j];pmax[i]=pmax[j];psz[i]=psz[j];pcol[i*3]=pcol[j*3];pcol[i*3+1]=pcol[j*3+1];pcol[i*3+2]=pcol[j*3+2];continue}
+    const x=px_[i],y=py_[i];
+    pvx[i]=(pvx[i]+dt*flow*(Math.sin(y*3.1+tt*.7)+Math.cos(x*1.7-tt*.4)))*drag;
+    pvy[i]=(pvy[i]+dt*(flow*(Math.cos(x*2.9-tt*.6)+Math.sin(y*2.1+tt*.5))+lerp(.12,0,sm)))*drag;
+    px_[i]=x+pvx[i]*dt;py_[i]=y+pvy[i]*dt;
+    const u=plife[i]/pmax[i];put(i,px_[i],py_[i],psz[i]*(1+mid*.9),Math.min(1,u*2.2)*.55,pcol[i*3],pcol[i*3+1],pcol[i*3+2]);i++;
+  }
+
+  gl.viewport(0,0,W,Hh);gl.activeTexture(gl.TEXTURE0);
+  // 1 反馈：上一帧衰减并轻微外扩，再叠加新粒子
+  const src=fbo[cur],dst=fbo[1-cur];cur=1-cur;
+  gl.bindFramebuffer(gl.FRAMEBUFFER,dst.f);gl.disable(gl.BLEND);gl.useProgram(P.fade.p);gl.bindVertexArray(quadVAO);gl.bindTexture(gl.TEXTURE_2D,src.t);
+  gl.uniform1i(P.fade.u.T,0);gl.uniform1f(P.fade.u.fade,Math.pow(lerp(.012,.004,sm),dt));gl.uniform1f(P.fade.u.zoom,1+dt*lerp(.1,.42,sm)*(1+bass));
+  gl.uniform1f(P.fade.u.sub,hdr?.0006:.004);gl.uniform2f(P.fade.u.drift,0,-dt*lerp(.012,0,sm));gl.drawArrays(gl.TRIANGLE_STRIP,0,4);
+  gl.enable(gl.BLEND);gl.blendFunc(gl.ONE,gl.ONE);
+  gl.useProgram(P.pt.p);gl.bindVertexArray(ptVAO);gl.bindBuffer(gl.ARRAY_BUFFER,ptBuf);
+  gl.uniform1f(P.pt.u.ia,1/aspect);gl.uniform1f(P.pt.u.px,pxs*1.6);gl.uniform1f(P.pt.u.shape,sm);gl.uniform1f(P.pt.u.sharp,lerp(1.6,.9,sm));
+  if(pn){gl.bufferSubData(gl.ARRAY_BUFFER,0,pd,0,pn*STRIDE);gl.drawArrays(gl.POINTS,0,pn)}
+  if(tn){gl.bufferSubData(gl.ARRAY_BUFFER,0,pd,MAXP*STRIDE,tn*STRIDE);gl.drawArrays(gl.POINTS,0,tn)}
+  // 2 场景：反馈结果 + 花朵 + 手部关键点
+  const sc=fbo[2];gl.bindFramebuffer(gl.FRAMEBUFFER,sc.f);gl.disable(gl.BLEND);gl.useProgram(P.fade.p);gl.bindVertexArray(quadVAO);gl.bindTexture(gl.TEXTURE_2D,dst.t);
+  gl.uniform1f(P.fade.u.fade,1);gl.uniform1f(P.fade.u.zoom,1);gl.uniform1f(P.fade.u.sub,0);gl.uniform2f(P.fade.u.drift,0,0);gl.drawArrays(gl.TRIANGLE_STRIP,0,4);
+  gl.enable(gl.BLEND);gl.useProgram(P.fl.p);gl.uniform1f(P.fl.u.ia,1/aspect);gl.uniform1f(P.fl.u.line,sm);gl.uniform1f(P.fl.u.pulse,bass*2);
+  for(let i=flowers.length-1;i>=0;i--){const f=flowers[i],u=(now-f.t0)/f.dur;if(u>=1){flowers.splice(i,1);continue}
+    gl.uniform2f(P.fl.u.c,f.x,f.y);gl.uniform1f(P.fl.u.R,f.R*(1+u*.35));gl.uniform1f(P.fl.u.u,u);gl.uniform1f(P.fl.u.n,f.n);gl.uniform1f(P.fl.u.rot,f.rot+u*lerp(.5,1.6,sm));
+    gl.uniform3fv(P.fl.u.cA,f.cA);gl.uniform3fv(P.fl.u.cB,f.cB);gl.drawArrays(gl.TRIANGLE_STRIP,0,4)}
+  let sk=0;const ac=[lerp(ACC[0][0],ACC[1][0],sm),lerp(ACC[0][1],ACC[1][1],sm),lerp(ACC[0][2],ACC[1][2],sm)];
+  for(let i=0;i<2;i++){const h=H[i];if(!alive(h,now))continue;
+    put(sk++,(h.x*2-1)*aspect,1-2*h.y,10+h.open*16,.5,ac[0],ac[1],ac[2]);
+    if(h.pts)for(const q of h.pts)put(sk++,(q[0]*2-1)*aspect,1-2*q[1],3.5,.45,ac[0],ac[1],ac[2])}
+  if(sk){gl.useProgram(P.pt.p);gl.bindVertexArray(ptVAO);gl.bindBuffer(gl.ARRAY_BUFFER,ptBuf);gl.bufferSubData(gl.ARRAY_BUFFER,0,pd,0,sk*STRIDE);gl.drawArrays(gl.POINTS,0,sk)}
+  gl.bindTexture(gl.TEXTURE_2D,sc.t);gl.generateMipmap(gl.TEXTURE_2D);
+  // 3 合成：背景渐变 + 频谱极光 + 泛光 + 色调映射
+  gl.bindFramebuffer(gl.FRAMEBUFFER,null);gl.disable(gl.BLEND);gl.useProgram(P.out.p);gl.bindVertexArray(quadVAO);
+  gl.uniform1i(P.out.u.S,0);gl.activeTexture(gl.TEXTURE1);gl.bindTexture(gl.TEXTURE_2D,specTex);gl.uniform1i(P.out.u.spec,1);gl.activeTexture(gl.TEXTURE0);
+  const L=(k,j)=>lerp(BG[0][k][j],BG[1][k][j],sm);
+  gl.uniform3f(P.out.u.bgA,L(0,0),L(0,1),L(0,2));gl.uniform3f(P.out.u.bgB,L(1,0),L(1,1),L(1,2));gl.uniform3f(P.out.u.acc,ac[0],ac[1],ac[2]);
+  gl.uniform1f(P.out.u.bass,bass);gl.uniform1f(P.out.u.asp,aspect);gl.drawArrays(gl.TRIANGLE_STRIP,0,4);
+}
+
+/* ============================================================
+   摄像头 + MediaPipe Hands
+   ============================================================ */
+const VER='0.4.1675469240';
+const CDNS=[`https://cdn.jsdelivr.net/npm/@mediapipe/hands@${VER}/`,`https://unpkg.com/@mediapipe/hands@${VER}/`,`https://registry.npmmirror.com/@mediapipe/hands/${VER}/files/`];
+const loadScript=src=>new Promise((res,rej)=>{const s=document.createElement('script');s.src=src;s.crossOrigin='anonymous';
+  const to=setTimeout(()=>{s.remove();rej(new Error('timeout'))},9000);s.onload=()=>{clearTimeout(to);res()};s.onerror=()=>{clearTimeout(to);s.remove();rej(new Error(src))};document.head.appendChild(s)});
+let mp=null,capT=0;
+async function startCamera(){
+  const video=$('cam');
+  if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia)throw new Error('nocam');
+  const stream=await navigator.mediaDevices.getUserMedia({audio:false,video:{width:{ideal:640},height:{ideal:480},frameRate:{ideal:60},facingMode:'user'}});
+  video.srcObject=stream;await video.play();
+  let base=null;
+  for(const c of CDNS){try{await loadScript(c+'hands.js');if(window.Hands){base=c;break}}catch(e){}}
+  if(!base){stream.getTracks().forEach(t=>t.stop());throw new Error('nomodel')}
+  mp=new window.Hands({locateFile:f=>base+f});
+  mp.setOptions({maxNumHands:2,modelComplexity:0,minDetectionConfidence:.6,minTrackingConfidence:.6});
+  mp.onResults(onResults);
+  await mp.initialize();
+  let busy=false;
+  const step=async(now,meta)=>{
+    if(!busy&&video.readyState>=2){busy=true;capT=(meta&&meta.captureTime)||(meta&&meta.expectedDisplayTime)||performance.now();
+      try{await mp.send({image:video})}catch(e){}busy=false}
+    if(video.requestVideoFrameCallback)video.requestVideoFrameCallback(step);else requestAnimationFrame(t=>step(t));
+  };
+  step(performance.now());
+}
+const TIPS=[8,12,16,20];
+function onResults(r){
+  const t=performance.now(),v=$('cam'),va=(v.videoWidth||4)/(v.videoHeight||3),list=[];
+  S.lat+=.15*(clamp(t-capT,0,400)-S.lat);
+  const lms=r.multiHandLandmarks||[];
+  for(const lm of lms){
+    let cx=0,cy=0;for(const i of [0,5,9,13,17]){cx+=lm[i].x;cy+=lm[i].y}cx/=5;cy/=5;
+    const D=(a,b)=>Math.hypot((lm[a].x-lm[b].x)*va,lm[a].y-lm[b].y),ps=D(0,9)||1e-3;
+    let o=0;for(const i of TIPS)o+=D(i,0);o=o/4/ps;
+    const mx=x=>(1-x-.12)/.76,my=y=>(y-.12)/.76;
+    list.push({x:clamp(mx(cx)),y:clamp(my(cy)),open:clamp((o-1.1)/.75),pts:lm.map(q=>[mx(q.x),my(q.y)])});
+  }
+  ingest(list,t);
+}
+
+/* ============================================================
+   界面
+   ============================================================ */
+const ptr={x:.5,y:.5,open:1,wheel:1,down:false};
+cv.addEventListener('pointermove',e=>{ptr.x=e.clientX/cv.clientWidth;ptr.y=e.clientY/cv.clientHeight;if(S.mode==='pointer')ingest([{x:ptr.x,y:ptr.y,open:ptr.open}],performance.now())});
+cv.addEventListener('pointerdown',()=>{ptr.down=true;ptr.open=.1});
+window.addEventListener('pointerup',()=>{ptr.down=false;ptr.open=ptr.wheel});
+cv.addEventListener('wheel',e=>{e.preventDefault();ptr.wheel=clamp(ptr.wheel-e.deltaY*.0015);if(!ptr.down)ptr.open=ptr.wheel},{passive:false});
+
+let toastT;function toast(big,small,ms=2200){const el=$('toast');el.innerHTML='';el.append(big);if(small){const s=document.createElement('small');s.textContent=small;el.append(s)}el.classList.add('on');clearTimeout(toastT);toastT=setTimeout(()=>el.classList.remove('on'),ms)}
+function flashRead(id,txt){const el=$(id);el.textContent=txt;el.classList.add('flash');setTimeout(()=>el.classList.remove('flash'),350)}
+function setStyle(s){
+  if(s===S.style)return;S.style=s;document.documentElement.dataset.style=s;
+  $('b0').setAttribute('aria-pressed',s===0);$('b1').setAttribute('aria-pressed',s===1);
+  $('rTimbre').textContent=TIMBRE[s][S.zone];applyStyleAudio();toast(s?'电子流行':'交响乐');
+}
+function hudStat(now){
+  if(!S.started){$('stat').textContent='待机';return}
+  const out=A.ctx?((A.ctx.baseLatency||0)+(A.ctx.outputLatency||0))*1000:0;
+  if(S.mode==='camera'){const n=(alive(H[0],now)?1:0)+(alive(H[1],now)?1:0);
+    $('stat').textContent=`${n?n+' 只手':'未见手'} · 识别 ${Math.round(S.lat)} ms · 音频 ${Math.round(out)} ms · ${S.fps} fps`}
+  else $('stat').textContent=`鼠标演示 · 音频 ${Math.round(out)} ms · ${S.fps} fps`;
+}
+async function begin(useCam){
+  const go=$('go'),gm=$('goMouse');go.disabled=gm.disabled=true;
+  try{if(!A.ctx)initAudio();await A.ctx.resume()}catch(e){}
+  let why='';
+  if(useCam){go.textContent='正在唤醒摄像头';
+    try{await startCamera();S.mode='camera'}catch(e){why=e&&e.message==='nomodel'?'手部模型加载失败，请检查网络':'没有拿到摄像头权限';S.mode='pointer'}
+  }else S.mode='pointer';
+  S.started=true;S.beatN=0;S.lastIdx=-1;H[0].seen=H[1].seen=-1e9;
+  $('intro').classList.add('off');go.disabled=gm.disabled=false;go.textContent='开始指挥';
+  if(S.mode==='pointer')toast(why?'鼠标演示':'请挥动鼠标',why?why+'，已改用鼠标：移动即挥动，按住为握拳':'向下一顿为一拍，按住为握拳，滚轮调开合',why?5200:3200);
+  else toast('请抬手','向下一顿，落下第一拍',3000);
+}
+$('go').onclick=()=>begin(true);$('goMouse').onclick=()=>begin(false);
+$('b0').onclick=()=>setStyle(0);$('b1').onclick=()=>setStyle(1);
+window.addEventListener('keydown',e=>{
+  const k=e.key.toLowerCase();
+  if(k==='s'||k==='tab'){e.preventDefault();setStyle(1-S.style)}
+  else if(k==='1')setStyle(0);else if(k==='2')setStyle(1);
+  else if(k==='c')$('cam').classList.toggle('on');
+  else if(k==='h'){const i=$('intro');if(S.started)i.classList.toggle('off')}
+  else if(k==='f'){try{document.fullscreenElement?document.exitFullscreen():document.documentElement.requestFullscreen().catch(()=>{})}catch(_){}}
+  else if(k===' '&&S.started){e.preventDefault();beat(.6,performance.now())}
+  else if(k==='m'&&A.ctx){S.muted=!S.muted;A.master.gain.setTargetAtTime(S.muted?0:.75,A.ctx.currentTime,.05);toast(S.muted?'静音':'出声')}
+  else if(k==='q'&&mp){S.precise=!S.precise;mp.setOptions({modelComplexity:S.precise?1:0});toast(S.precise?'高精度':'低延迟')}
+});
+// 鼠标静止几秒后隐去读数，保持沉浸
+let idleT;const wake=()=>{document.body.classList.remove('idle');clearTimeout(idleT);idleT=setTimeout(()=>{if(S.started&&S.mode==='camera')document.body.classList.add('idle')},3500)};
+window.addEventListener('pointermove',wake);window.addEventListener('keydown',wake);
+
+if(!gl){$('stat').textContent='此浏览器不支持 WebGL2';}
+else{initGL();requestAnimationFrame(frame);}
+</script>
+</body>
+</html>
