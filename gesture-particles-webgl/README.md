@@ -6,6 +6,15 @@
 
 > 截图与录屏在 `docs/media/`，说明见文末“测试与验收记录”。
 
+## 🌐 在线打开（无需安装）
+
+**👉 <https://raw.githack.com/yandongdesign-rgb/AIGC-BAG/a7239f7e28734d9af6ce0b01b636a6364c514873/gesture-particles-webgl/index.html>**
+
+- 自动演示：<https://raw.githack.com/yandongdesign-rgb/AIGC-BAG/a7239f7e28734d9af6ce0b01b636a6364c514873/gesture-particles-webgl/index.html?demo=1>
+- 请用 Chrome / Edge 打开，点“摄像头模式”并允许摄像头权限；首次需在页面上点一下才会出声。
+- 注意：在 GitHub 仓库里点 `index.html` 只会显示源代码，**不会运行**，请用上面的链接。
+- 本项目在分支 `claude/gesture-particles-webgl` 上；合并到 `main` 后也可把链接中的提交号换成 `main`。
+
 ---
 
 ## 一、快速开始（非技术人员照做即可）
