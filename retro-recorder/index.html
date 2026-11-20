@@ -1,0 +1,1278 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>木韵 RC-1985 · 复古双卡收录机</title>
+<style>
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{
+  display:flex;align-items:center;justify-content:center;overflow:hidden;
+  background:radial-gradient(ellipse at 50% 30%,#3b332b 0%,#1b1714 70%,#110e0c 100%);
+  font-family:"Microsoft YaHei","PingFang SC","Hiragino Sans GB","Helvetica Neue",Arial,sans-serif;
+  color:#2a2118;-webkit-user-select:none;user-select:none;
+}
+button{font-family:inherit;cursor:pointer}
+button:focus-visible,.knob:focus-visible,.dial:focus-visible{outline:2px solid #ffcf7a;outline-offset:3px}
+
+#machine{position:relative;width:800px;height:600px;flex:none;transform-origin:center center}
+
+/* ---------- 提手 ---------- */
+.handle{position:absolute;left:150px;right:150px;top:0;height:40px;z-index:1}
+.handle .post{position:absolute;top:8px;width:40px;height:32px;border-radius:7px 7px 0 0;
+  background:linear-gradient(90deg,#141210,#3a3632 45%,#1b1917)}
+.handle .post.l{left:0}.handle .post.r{right:0}
+.handle .bar{position:absolute;left:18px;right:18px;top:2px;height:17px;border-radius:9px;
+  background:linear-gradient(#ffffff,#b9bdc1 35%,#7b7f84 52%,#d9dcdf 70%,#8c9094);
+  box-shadow:0 4px 7px rgba(0,0,0,.55),inset 0 -1px 0 rgba(0,0,0,.3)}
+
+/* ---------- 木纹机身 ---------- */
+.cabinet{position:absolute;left:0;top:28px;width:800px;height:572px;border-radius:22px;z-index:2;
+  background:
+   url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='420' height='420'%3E%3Cfilter id='w'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.006 0.16' numOctaves='4' seed='11'/%3E%3CfeColorMatrix values='0 0 0 0 0.20 0 0 0 0 0.10 0 0 0 0 0.03 0 0 0 1.4 -0.45'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23w)'/%3E%3C/svg%3E"),
+   repeating-linear-gradient(91deg,rgba(40,18,4,0) 0 6px,rgba(40,18,4,.16) 7px 8px,rgba(255,214,160,.05) 9px 15px,rgba(40,18,4,0) 16px 23px),
+   linear-gradient(180deg,#93603a 0%,#7a4a27 40%,#663a1c 75%,#56301a 100%);
+  box-shadow:0 26px 60px rgba(0,0,0,.65),0 0 0 3px #3a2010,inset 0 2px 0 rgba(255,222,176,.45),inset 0 -6px 14px rgba(0,0,0,.45),inset 0 0 40px rgba(30,12,2,.35)}
+.cabinet::after{content:"";position:absolute;inset:0;border-radius:22px;pointer-events:none;
+  background:linear-gradient(115deg,rgba(255,240,210,.10),rgba(255,240,210,0) 35%,rgba(0,0,0,0) 70%,rgba(0,0,0,.12))}
+
+.brand{position:absolute;left:24px;top:6px;display:flex;align-items:baseline;gap:8px}
+.brand b{font:italic 900 17px/1 "Arial Black",Arial,sans-serif;letter-spacing:3px;
+  background:linear-gradient(#fff,#c9cdd1 50%,#8e9297);-webkit-background-clip:text;background-clip:text;color:transparent;
+  filter:drop-shadow(0 1px 0 rgba(0,0,0,.6))}
+.brand span{font-size:12px;color:#f3dfbd;letter-spacing:4px;text-shadow:0 1px 0 #3a1e0c}
+.model{position:absolute;right:26px;top:9px;font-size:10px;letter-spacing:2.5px;color:#f0dcb8;text-shadow:0 1px 0 #3a1e0c}
+
+.rivet{position:absolute;width:9px;height:9px;border-radius:50%;z-index:5;
+  background:radial-gradient(circle at 35% 30%,#fff 0,#d4d7da 22%,#7d8185 62%,#3c3e40 100%);
+  box-shadow:0 1px 2px rgba(0,0,0,.7),0 0 0 1px rgba(40,20,8,.5)}
+.rivet::after{content:"";position:absolute;left:4px;top:1px;width:1px;height:7px;background:rgba(40,40,40,.55);transform:rotate(40deg)}
+
+/* ---------- 喇叭 ---------- */
+.spk{position:absolute;top:32px;width:170px;height:290px;border-radius:14px;
+  background:linear-gradient(#2c2926,#141312);
+  box-shadow:inset 0 0 0 2px #0b0a09,inset 0 2px 0 #4c4844,0 1px 0 rgba(255,222,176,.35),0 3px 6px rgba(0,0,0,.4)}
+.spk.l{left:16px}.spk.r{right:16px}
+.spk .grille{position:absolute;inset:9px 9px 34px;border-radius:9px;overflow:hidden;
+  background:
+   radial-gradient(circle,rgba(0,0,0,.9) 0 .85px,transparent 1.25px) 0 0/3px 3px,
+   radial-gradient(circle at 50% 42%,#6a6660 0%,#45423e 40%,#262422 72%,#171615 100%);
+  box-shadow:inset 0 0 14px #000,inset 0 0 0 1px #000}
+.spk .cone{position:absolute;left:50%;top:42%;width:126px;height:126px;margin:-63px 0 0 -63px;border-radius:50%;
+  box-shadow:0 0 0 2px rgba(255,255,255,.06),inset 0 0 0 16px rgba(0,0,0,.14),inset 0 0 0 40px rgba(255,255,255,.035);
+  transform:scale(var(--pump,1));transition:transform .05s linear}
+.spk .tweet{position:absolute;left:50%;bottom:18px;width:34px;height:34px;margin-left:-17px;border-radius:50%;
+  box-shadow:0 0 0 2px rgba(255,255,255,.07),inset 0 0 0 8px rgba(0,0,0,.18)}
+.spk .badge{position:absolute;left:28px;right:28px;bottom:9px;height:17px;border-radius:3px;
+  background:linear-gradient(#f2f3f4,#a9adb1 55%,#d5d8da);font-size:9px;font-weight:700;letter-spacing:2px;
+  display:flex;align-items:center;justify-content:center;color:#333;box-shadow:0 1px 2px rgba(0,0,0,.6)}
+
+/* ---------- 磁带仓 ---------- */
+.deck{position:absolute;left:196px;top:32px;width:408px;height:196px;border-radius:12px;
+  background:linear-gradient(#2e2b28,#141312);
+  box-shadow:inset 0 0 0 2px #0a0908,inset 0 2px 0 #4f4b47,0 1px 0 rgba(255,222,176,.35),0 3px 6px rgba(0,0,0,.4)}
+.deck-title{position:absolute;left:16px;top:7px;font-size:10px;letter-spacing:2px;color:#cdbf9c;display:flex;align-items:center;gap:8px}
+.rec-led{width:8px;height:8px;border-radius:50%;background:#4a1612;box-shadow:inset 0 1px 2px #000}
+.rec-led.on{background:#ff3b2b;box-shadow:0 0 8px #ff3b2b,0 0 2px #fff inset;animation:blink .9s steps(2,start) infinite}
+.play-led{width:8px;height:8px;border-radius:50%;background:#1d3a17;box-shadow:inset 0 1px 2px #000}
+.play-led.on{background:#7bff5a;box-shadow:0 0 7px #6dff4a}
+.counter{position:absolute;right:16px;top:5px;display:flex;gap:2px;align-items:center}
+.counter::before{content:"COUNTER";font-size:8px;letter-spacing:1.5px;color:#9c917a;margin-right:5px}
+.counter span{width:12px;height:16px;border-radius:2px;background:linear-gradient(#000,#2a2826 50%,#000);color:#f2efe6;
+  font:700 12px/16px "Courier New",monospace;text-align:center;box-shadow:inset 0 0 0 1px #3d3a36}
+.door{position:absolute;left:14px;right:14px;top:25px;height:124px;border-radius:7px;overflow:hidden;
+  background:linear-gradient(#1a1816,#0b0a09);box-shadow:inset 0 0 0 2px #55514c,inset 0 0 22px #000}
+.cassette{position:absolute;left:40px;top:9px;width:300px;height:108px;border-radius:7px 7px 4px 4px;
+  background:linear-gradient(#ece4d2,#d9cfb8);box-shadow:0 2px 6px rgba(0,0,0,.7),inset 0 1px 0 #fff,inset 0 -2px 0 rgba(0,0,0,.18)}
+.cs-label{position:absolute;left:8px;right:8px;top:6px;height:24px;border-radius:3px;overflow:hidden;
+  background:linear-gradient(#f8f2e4 0 58%,#e2672c 58% 70%,#f1a83c 70% 82%,#3b6ea5 82% 100%);
+  display:flex;align-items:flex-start;justify-content:space-between;padding:1px 6px;font-size:10px;color:#4a3a28}
+.cs-label .side{font:900 12px/13px Arial,sans-serif;color:#b33a1e}
+.cs-label .cs-title{font-family:"Comic Sans MS","Kaiti SC","STKaiti","KaiTi",cursive;font-size:11px;line-height:13px;color:#2c4a8a;max-width:190px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cs-label .cs-type{font:700 9px/13px Arial,sans-serif}
+#reels{position:absolute;left:34px;top:35px;width:232px;height:56px;border-radius:5px;
+  box-shadow:0 0 0 2px #b9ae94,inset 0 0 8px #000;background:#171310}
+.cs-bottom{position:absolute;left:62px;right:62px;bottom:0;height:14px;border-radius:3px 3px 0 0;
+  background:linear-gradient(#cfc5ad,#bdb298);display:flex;justify-content:space-around;align-items:center}
+.cs-bottom i{width:9px;height:6px;border-radius:2px;background:#2b241c}
+.cs-screw{position:absolute;width:6px;height:6px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#eee,#888 60%,#444)}
+.glare{position:absolute;inset:0;pointer-events:none;
+  background:linear-gradient(160deg,rgba(255,255,255,.16) 0%,rgba(255,255,255,.04) 28%,rgba(255,255,255,0) 40%,rgba(255,255,255,0) 75%,rgba(255,255,255,.05) 100%),
+             linear-gradient(rgba(40,30,20,.18),rgba(40,30,20,.18))}
+.tapebar-row{position:absolute;left:16px;right:16px;top:158px;height:26px;display:flex;align-items:center;gap:9px;
+  font:11px "Courier New",monospace;color:#d9cfb6}
+.tapebar{position:relative;flex:1;height:18px;border-radius:9px;cursor:pointer;touch-action:none;
+  background:
+   repeating-linear-gradient(90deg,rgba(255,255,255,.18) 0 1px,transparent 1px 10%),
+   linear-gradient(#0a0908,#22201d);
+  box-shadow:inset 0 2px 4px #000,0 1px 0 rgba(255,255,255,.12)}
+.tb-fill{position:absolute;left:3px;top:4px;bottom:4px;width:0;border-radius:5px;
+  background:linear-gradient(#6a432a,#3b2213 60%,#2a170c);box-shadow:inset 0 1px 0 rgba(255,200,150,.25)}
+.tb-head{position:absolute;top:-3px;left:0;width:16px;height:24px;margin-left:-8px;border-radius:4px;
+  background:linear-gradient(90deg,#9ca0a4,#f4f5f6 45%,#b2b6ba 55%,#6e7276);box-shadow:0 2px 4px rgba(0,0,0,.7)}
+.tb-head::after{content:"";position:absolute;left:7px;top:4px;bottom:4px;width:2px;background:#c0291c}
+.tapebar.empty{opacity:.55;cursor:not-allowed}
+
+/* ---------- 显示屏 ---------- */
+.lcd{position:absolute;left:196px;top:236px;width:408px;height:86px;border-radius:9px;overflow:hidden;
+  background:radial-gradient(ellipse at 40% 30%,#10201a,#060a08 80%);
+  box-shadow:inset 0 0 0 3px #1c1b19,inset 0 0 0 4px #000,inset 0 0 20px rgba(0,0,0,.9),0 1px 0 rgba(255,222,176,.35);
+  color:#8ff8cf;font-family:"Courier New",Consolas,monospace;text-shadow:0 0 6px rgba(110,255,200,.55)}
+.lcd::after{content:"";position:absolute;inset:0;pointer-events:none;
+  background:repeating-linear-gradient(0deg,rgba(0,0,0,.18) 0 1px,transparent 1px 3px),
+             linear-gradient(170deg,rgba(255,255,255,.07),rgba(255,255,255,0) 40%)}
+.lcd .row{position:absolute;left:14px;width:262px;display:flex;justify-content:space-between;white-space:nowrap}
+.lcd .r1{top:8px;font-size:10px;letter-spacing:1.5px}
+.lcd .r2{top:21px;font:700 21px/26px "Microsoft YaHei","PingFang SC",sans-serif;letter-spacing:1px;overflow:hidden}
+.lcd .r2 span{overflow:hidden;text-overflow:ellipsis}
+.lcd .r3{top:50px;font-size:12px;letter-spacing:1px}
+.lcd .r4{top:66px;font-size:10px;color:#ffc35a;text-shadow:0 0 6px rgba(255,180,60,.6);letter-spacing:.5px;overflow:hidden}
+.lcd .flags b{font-weight:400;margin-left:6px;opacity:.18}
+.lcd .flags b.on{opacity:1}
+.lcd .flags b.rec.on{color:#ff6a55;text-shadow:0 0 6px #ff3b2b;animation:blink .9s steps(2,start) infinite}
+#vu{position:absolute;right:12px;top:10px;width:116px;height:66px}
+
+/* ---------- 调谐刻度 ---------- */
+.scale{position:absolute;left:16px;top:330px;width:768px;height:40px;border-radius:7px;overflow:hidden;
+  background:linear-gradient(#1b1611,#0d0a07);box-shadow:inset 0 0 0 2px #0a0806,inset 0 2px 6px #000,0 1px 0 rgba(255,222,176,.35);
+  transition:background .4s}
+.scale.lit{background:radial-gradient(ellipse at 50% 120%,#5a3a10,#231a0d 60%,#110c07)}
+.scale .fm{position:absolute;left:58px;right:20px;top:3px;height:12px;display:flex;justify-content:space-between;
+  font:9px "Courier New",monospace;color:#d8c8a2}
+.scale .ticks{position:absolute;left:58px;right:20px;top:15px;height:6px;
+  background:repeating-linear-gradient(90deg,#d8c8a2 0 1px,transparent 1px 1%)}
+.scale .band{position:absolute;left:10px;top:5px;font:900 14px Arial,sans-serif;color:#e4623a;letter-spacing:1px}
+.scale .band small{display:block;font:8px Arial;color:#a99a7a;letter-spacing:1px}
+.scale .names{position:absolute;left:58px;right:20px;top:22px;height:16px}
+.scale .names button{position:absolute;transform:translateX(-50%);top:0;background:none;border:0;padding:0 2px;
+  font-size:10px;color:#b8a988;white-space:nowrap;line-height:16px}
+.scale .names button.cur{color:#ffd27a;text-shadow:0 0 6px rgba(255,190,80,.8)}
+.scale .names button.dead{color:#6b5f4b;text-decoration:line-through}
+.needle{position:absolute;top:2px;bottom:2px;width:3px;margin-left:-1.5px;border-radius:2px;
+  background:linear-gradient(#ff7a5c,#e02a12);box-shadow:0 0 6px rgba(255,60,30,.9);transition:left .35s cubic-bezier(.3,1.4,.5,1)}
+
+/* ---------- 下方控制面板 ---------- */
+.panel{position:absolute;left:16px;top:378px;width:768px;height:186px;border-radius:12px;
+  background:
+   repeating-linear-gradient(90deg,rgba(255,255,255,.025) 0 1px,transparent 1px 3px),
+   linear-gradient(#3b3835,#262422 60%,#1d1b19);
+  box-shadow:inset 0 0 0 2px #0e0d0c,inset 0 2px 0 #5a5652,0 1px 0 rgba(255,222,176,.35),0 3px 6px rgba(0,0,0,.4)}
+.lbl{position:absolute;font-size:9px;letter-spacing:1.5px;color:#c6bb9f;white-space:nowrap}
+
+.keys{position:absolute;left:14px;top:12px;width:330px;height:164px}
+.slot{position:absolute;left:0;top:6px;width:330px;height:84px;border-radius:7px;padding:7px 6px 0;display:flex;gap:6px;align-items:flex-start;
+  background:#0c0b0a;box-shadow:inset 0 3px 8px #000,0 1px 0 rgba(255,255,255,.12)}
+.rec-btn{position:relative;flex:none;width:58px;height:58px;margin-top:2px;border-radius:50%;border:0;
+  background:radial-gradient(circle at 35% 28%,#ff9b8a 0,#e83524 38%,#a6160c 75%,#6c0b05 100%);
+  box-shadow:0 6px 0 #4d0805,0 8px 10px rgba(0,0,0,.6),inset 0 -2px 4px rgba(0,0,0,.35);
+  color:#ffe9e4;font:900 11px Arial,sans-serif;letter-spacing:1px;transition:transform .06s,box-shadow .06s}
+.rec-btn::before{content:"";position:absolute;left:50%;top:12px;width:14px;height:14px;margin-left:-7px;border-radius:50%;background:#ffe9e4;opacity:.9}
+.rec-btn span{position:absolute;left:0;right:0;bottom:12px}
+.rec-btn:active,.rec-btn.down{transform:translateY(5px);box-shadow:0 1px 0 #4d0805,0 2px 4px rgba(0,0,0,.6),inset 0 2px 5px rgba(0,0,0,.4)}
+.rec-btn.recording{animation:recglow .9s ease-in-out infinite}
+@keyframes recglow{0%,100%{filter:brightness(1);box-shadow:0 1px 0 #4d0805,0 0 6px rgba(255,40,20,.4),inset 0 2px 5px rgba(0,0,0,.4)}
+  50%{filter:brightness(1.35);box-shadow:0 1px 0 #4d0805,0 0 24px 6px rgba(255,50,25,.85),inset 0 2px 5px rgba(0,0,0,.2)}}
+.key{position:relative;flex:none;width:46px;height:66px;border:0;border-radius:4px 4px 7px 7px;padding:0;
+  background:linear-gradient(#fdf8ec,#eee5d0 55%,#d8cbab);
+  box-shadow:0 6px 0 #9a8c6d,0 8px 10px rgba(0,0,0,.6),inset 0 1px 0 #fff,inset 0 -3px 0 rgba(0,0,0,.06);
+  color:#2d261d;transition:transform .06s,box-shadow .06s,background .1s}
+.key b{display:block;font-size:15px;line-height:34px;letter-spacing:-2px}
+.key small{display:block;font-size:8px;letter-spacing:1px;color:#6a5d47;font-weight:700}
+.key:active,.key.down{transform:translateY(5px);
+  background:linear-gradient(#efe7d4,#e2d7bd 55%,#cbbd9c);
+  box-shadow:0 1px 0 #9a8c6d,0 2px 3px rgba(0,0,0,.6),inset 0 2px 5px rgba(0,0,0,.18)}
+.key.down::after{content:"";position:absolute;left:50%;bottom:6px;width:16px;height:2px;margin-left:-8px;background:#e4462e;border-radius:1px;box-shadow:0 0 4px #ff5a3a}
+
+.speed{position:absolute;left:0;top:104px;width:150px;height:48px}
+.speed .groove{position:absolute;left:8px;top:16px;width:130px;height:12px;border-radius:6px;background:#0b0a09;box-shadow:inset 0 2px 4px #000,0 1px 0 rgba(255,255,255,.1)}
+.speed .thumb{position:absolute;top:10px;width:30px;height:24px;margin-left:-15px;border-radius:4px;
+  background:linear-gradient(90deg,#8d9196,#f1f2f3 45%,#c3c6c9 55%,#7a7e83);box-shadow:0 2px 4px rgba(0,0,0,.7);
+  transition:left .12s ease-out;pointer-events:none}
+.speed .thumb::after{content:"";position:absolute;left:8px;right:8px;top:5px;bottom:5px;background:repeating-linear-gradient(90deg,rgba(0,0,0,.35) 0 1px,transparent 1px 3px)}
+.speed .stop{position:absolute;top:30px;width:40px;margin-left:-20px;background:none;border:0;padding:6px 0 0;font:700 10px "Courier New",monospace;color:#c6bb9f}
+.speed .stop.cur{color:#ffd27a}
+.speed .hit{position:absolute;left:0;top:6px;width:146px;height:30px;background:none;border:0;padding:0}
+.meter{position:absolute;left:166px;top:112px;display:flex;gap:3px}
+.meter i{width:11px;height:8px;border-radius:1px;background:#1f2a14;box-shadow:inset 0 1px 1px #000}
+.meter i.on{background:#7cf05a;box-shadow:0 0 5px #7cf05a}
+.meter i.y.on{background:#ffc93a;box-shadow:0 0 5px #ffc93a}
+.meter i.r.on{background:#ff4a32;box-shadow:0 0 6px #ff4a32}
+.hint{position:absolute;left:166px;top:130px;width:166px;font-size:9px;line-height:13px;color:#9e937b}
+
+.ctrls{position:absolute;left:356px;top:0;width:214px;height:186px}
+.dial{position:absolute;left:4px;top:16px;width:104px;height:104px;border-radius:50%;touch-action:none;cursor:grab;
+  background:
+   radial-gradient(circle at 50% 50%,transparent 0 33px,rgba(0,0,0,0) 33px),
+   repeating-conic-gradient(from 0deg,#2e2c2a 0 4deg,#0e0d0c 4deg 8deg);
+  box-shadow:0 0 0 3px #090807,0 6px 10px rgba(0,0,0,.7),inset 0 0 0 2px rgba(255,255,255,.06)}
+.dial:active{cursor:grabbing}
+.dial .face{position:absolute;inset:14px;border-radius:50%;
+  background:radial-gradient(circle at 40% 30%,#3b3936,#121110 70%);box-shadow:0 2px 5px rgba(0,0,0,.8),inset 0 1px 0 rgba(255,255,255,.12);
+  transform:rotate(var(--rot,0deg))}
+.dial .face::before{content:"";position:absolute;left:50%;top:5px;width:8px;height:8px;margin-left:-4px;border-radius:50%;background:#ffcf7a;box-shadow:0 0 6px #ffb040}
+.dial .face::after{content:"";position:absolute;inset:22px;border-radius:50%;
+  background:radial-gradient(circle at 35% 30%,#fff,#c3c7cb 30%,#6f7378 80%);box-shadow:0 1px 3px rgba(0,0,0,.8)}
+.dial-ring{position:absolute;left:-6px;top:10px;width:116px;height:116px;border-radius:50%;pointer-events:none;
+  background:repeating-conic-gradient(from -1deg,#d8c8a2 0 2deg,transparent 2deg 36deg);
+  -webkit-mask:radial-gradient(circle,transparent 0 54px,#000 55px 58px,transparent 58px);mask:radial-gradient(circle,transparent 0 54px,#000 55px 58px,transparent 58px)}
+.knob-box{position:absolute;width:80px;height:70px}
+.knob-ring{position:absolute;left:12px;top:2px;width:56px;height:56px;border-radius:50%;pointer-events:none;
+  background:repeating-conic-gradient(from -135deg,#d8c8a2 0 2deg,transparent 2deg 27deg);
+  -webkit-mask:radial-gradient(circle,transparent 0 25px,#000 26px 28px,transparent 28px);mask:radial-gradient(circle,transparent 0 25px,#000 26px 28px,transparent 28px)}
+.knob{position:absolute;left:18px;top:8px;width:44px;height:44px;border-radius:50%;touch-action:none;cursor:ns-resize;
+  background:repeating-conic-gradient(#2b2927 0 6deg,#0f0e0d 6deg 12deg);box-shadow:0 0 0 2px #070606,0 4px 7px rgba(0,0,0,.7)}
+.knob::before{content:"";position:absolute;inset:7px;border-radius:50%;background:radial-gradient(circle at 40% 30%,#45423e,#141312 75%);box-shadow:inset 0 1px 0 rgba(255,255,255,.12)}
+.knob::after{content:"";position:absolute;left:50%;top:7px;width:3px;height:12px;margin-left:-1.5px;border-radius:2px;background:#f2e6c8;
+  transform-origin:1.5px 15px;transform:rotate(var(--rot,0deg))}
+.knob-box .lbl{left:0;right:0;top:56px;text-align:center}
+.fnsw{position:absolute;left:4px;top:146px;width:204px;height:30px;border-radius:6px;background:#0b0a09;box-shadow:inset 0 2px 5px #000,0 1px 0 rgba(255,255,255,.1);
+  display:flex;padding:3px}
+.fnsw button{flex:1;border:0;border-radius:4px;background:none;color:#8f8570;font-size:10px;font-weight:700;letter-spacing:1.5px;position:relative;z-index:1;transition:color .15s}
+.fnsw button.cur{color:#2a2118}
+.fnsw .sl{position:absolute;top:3px;bottom:3px;left:3px;width:calc(50% - 3px);border-radius:4px;
+  background:linear-gradient(#fdf8ec,#d8cbab);box-shadow:0 2px 3px rgba(0,0,0,.6),inset 0 1px 0 #fff;transition:transform .16s cubic-bezier(.4,1.5,.6,1)}
+.fnsw.radio .sl{transform:translateX(100%)}
+
+.lib{position:absolute;left:576px;top:10px;width:180px;height:166px;border-radius:7px;
+  background:linear-gradient(#1a1917,#100f0e);box-shadow:inset 0 0 0 1px #000,inset 0 2px 6px #000,0 1px 0 rgba(255,255,255,.1)}
+.lib .hd{position:absolute;left:9px;right:9px;top:6px;display:flex;justify-content:space-between;font-size:10px;letter-spacing:1px;color:#d8c8a2}
+.lib .hd small{color:#8f8570;font-size:9px}
+.tg{position:absolute;top:24px;width:78px;height:22px;border:0;border-radius:4px;font-size:10px;font-weight:700;color:#3a2f22;
+  background:linear-gradient(#fbf5e6,#d8cbab);box-shadow:0 3px 0 #8c7f62,0 4px 5px rgba(0,0,0,.5);transition:transform .06s,box-shadow .06s;padding-left:12px}
+.tg::before{content:"";position:absolute;left:7px;top:8px;width:6px;height:6px;border-radius:50%;background:#5a3a2a;box-shadow:inset 0 1px 1px #000}
+.tg.on{transform:translateY(3px);box-shadow:0 0 0 #8c7f62,0 1px 2px rgba(0,0,0,.5),inset 0 1px 3px rgba(0,0,0,.2)}
+.tg.on::before{background:#ff6a3a;box-shadow:0 0 5px #ff6a3a}
+.tg.t1{left:9px}.tg.t2{right:9px}
+.lib ul{position:absolute;left:5px;right:5px;top:52px;bottom:20px;margin:0;padding:0;list-style:none;overflow-y:auto;scrollbar-width:thin;scrollbar-color:#5a5248 transparent}
+.lib li{display:flex;align-items:center;gap:4px;height:22px;padding:0 4px;border-radius:3px;font-size:11px;color:#cfc3a6;cursor:pointer}
+.lib li:hover{background:rgba(255,255,255,.05)}
+.lib li.sel{background:rgba(255,190,90,.12);color:#ffd894}
+.lib li .ck{flex:none;width:10px;height:10px;border-radius:2px;border:1px solid #8f8570}
+.lib li.single .ck{border-radius:50%}
+.lib li.on .ck{background:#ffb347;border-color:#ffb347;box-shadow:0 0 4px #ffb347}
+.lib li .nm{flex:1;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.lib li .du{font:10px "Courier New",monospace;color:#9e937b}
+.lib li a,.lib li button{flex:none;border:0;background:none;color:#8f8570;font-size:11px;padding:0 2px;text-decoration:none;line-height:1}
+.lib li a:hover,.lib li button:hover{color:#ffd27a}
+.lib .empty{font-size:10px;color:#6f6656;text-align:center;padding-top:22px;line-height:16px}
+.lib .ft{position:absolute;left:9px;right:9px;bottom:4px;font:9px "Courier New",monospace;color:#8f8570;display:flex;justify-content:space-between}
+
+/* ---------- 弹窗 ---------- */
+.modal{position:absolute;inset:0;z-index:50;display:flex;align-items:center;justify-content:center;background:rgba(10,6,3,.62);border-radius:22px}
+.modal[hidden]{display:none}
+.modal .card{width:420px;padding:20px 22px 16px;border-radius:6px;
+  background:linear-gradient(#fbf6ea,#eee3c9);box-shadow:0 18px 40px rgba(0,0,0,.6),inset 0 0 0 1px #c9b994;color:#3a2c1c;position:relative}
+.modal .card::before{content:"";position:absolute;left:0;right:0;top:0;height:6px;border-radius:6px 6px 0 0;
+  background:linear-gradient(90deg,#e2672c 0 33%,#f1a83c 33% 66%,#3b6ea5 66%)}
+.modal h3{margin:4px 0 10px;font-size:16px}
+.modal p{margin:0 0 6px;font-size:12px;line-height:19px}
+.modal .btns{display:flex;justify-content:flex-end;gap:10px;margin-top:12px}
+.modal .btns button{border:0;border-radius:4px;padding:7px 16px;font-size:12px;font-weight:700;
+  background:linear-gradient(#fdf8ec,#d8cbab);box-shadow:0 3px 0 #9a8c6d,0 4px 6px rgba(0,0,0,.3);color:#2d261d}
+.modal .btns button:active{transform:translateY(3px);box-shadow:0 0 0 #9a8c6d}
+.modal .btns button.primary{background:linear-gradient(#ff8a72,#d8331f);color:#fff;box-shadow:0 3px 0 #7a1309,0 4px 6px rgba(0,0,0,.3)}
+
+@keyframes blink{50%{opacity:.25}}
+@media (prefers-reduced-motion:reduce){.rec-btn.recording,.rec-led.on,.lcd .flags b.rec.on{animation:none}}
+</style>
+</head>
+<body>
+<div id="machine">
+  <div class="handle"><i class="post l"></i><i class="post r"></i><div class="bar"></div></div>
+
+  <div class="cabinet">
+    <div class="brand"><b>MUYUN</b><span>木韵</span></div>
+    <div class="model">STEREO RADIO CASSETTE RECORDER · RC-1985</div>
+
+    <i class="rivet" style="left:10px;top:10px"></i><i class="rivet" style="right:10px;top:10px"></i>
+    <i class="rivet" style="left:10px;bottom:10px"></i><i class="rivet" style="right:10px;bottom:10px"></i>
+    <i class="rivet" style="left:396px;bottom:2px"></i>
+    <i class="rivet" style="left:22px;top:38px"></i><i class="rivet" style="left:169px;top:38px"></i>
+    <i class="rivet" style="right:22px;top:38px"></i><i class="rivet" style="right:169px;top:38px"></i>
+    <i class="rivet" style="left:22px;top:307px"></i><i class="rivet" style="left:169px;top:307px"></i>
+    <i class="rivet" style="right:22px;top:307px"></i><i class="rivet" style="right:169px;top:307px"></i>
+
+    <div class="spk l"><div class="grille"><i class="cone"></i><i class="tweet"></i></div><div class="badge">HI-FI 2-WAY</div></div>
+    <div class="spk r"><div class="grille"><i class="cone"></i><i class="tweet"></i></div><div class="badge">8Ω · 5W</div></div>
+
+    <div class="deck">
+      <div class="deck-title">A · CASSETTE DECK <i class="rec-led" id="recLed" title="录音指示"></i><i class="play-led" id="playLed" title="走带指示"></i></div>
+      <div class="counter" id="counter"><span>0</span><span>0</span><span>0</span></div>
+      <div class="door">
+        <div class="cassette">
+          <i class="cs-screw" style="left:4px;top:4px"></i><i class="cs-screw" style="right:4px;top:4px"></i>
+          <i class="cs-screw" style="left:4px;bottom:4px"></i><i class="cs-screw" style="right:4px;bottom:4px"></i>
+          <div class="cs-label"><span class="side">A</span><span class="cs-title" id="csTitle">空白磁带</span><span class="cs-type">C-60 · TYPE I</span></div>
+          <canvas id="reels" width="232" height="56"></canvas>
+          <div class="cs-bottom"><i></i><i></i><i></i><i></i></div>
+        </div>
+        <div class="glare"></div>
+      </div>
+      <div class="tapebar-row">
+        <span id="tCur">00:00</span>
+        <div class="tapebar empty" id="tapebar" title="拖动磁带进度跳转"><div class="tb-fill" id="tbFill"></div><div class="tb-head" id="tbHead"></div></div>
+        <span id="tDur">00:00</span>
+      </div>
+    </div>
+
+    <div class="lcd" aria-live="polite">
+      <div class="row r1"><span id="lcdMode">◉ TAPE</span><span class="flags"><b class="rec" id="fRec">REC</b><b id="fLoop">LOOP</b><b id="fMix">MIX</b><b id="fSt">ST</b></span></div>
+      <div class="row r2"><span id="lcdMain">— 无磁带 —</span></div>
+      <div class="row r3"><span id="lcdSub">00:00 / 00:00</span><span id="lcdRight">×1.0</span></div>
+      <div class="row r4"><span id="lcdMsg">欢迎使用 · 按红色 REC 键开始录音</span></div>
+      <canvas id="vu" width="116" height="66"></canvas>
+    </div>
+
+    <div class="scale" id="scale">
+      <div class="band">FM<small>STEREO</small></div>
+      <div class="fm"><span>88</span><span>90</span><span>92</span><span>94</span><span>96</span><span>98</span><span>100</span><span>102</span><span>104</span><span>106</span><span>108 MHz</span></div>
+      <div class="ticks"></div>
+      <div class="names" id="stNames"></div>
+      <div class="needle" id="needle"></div>
+    </div>
+
+    <div class="panel">
+      <div class="keys">
+        <span class="lbl" style="left:2px;top:-8px">● REC</span>
+        <span class="lbl" style="left:110px;top:-8px">TAPE TRANSPORT 走带控制</span>
+        <div class="slot">
+          <button class="rec-btn" id="kRec" title="录音 / 停止录音（R）"><span>REC</span></button>
+          <button class="key" id="kRew" title="单击后退5秒 · 长按倒带（←）"><b>◀◀</b><small>REW</small></button>
+          <button class="key" id="kPlay" title="播放（空格）"><b>▶</b><small>PLAY</small></button>
+          <button class="key" id="kFf" title="单击前进5秒 · 长按快进（→）"><b>▶▶</b><small>F.FWD</small></button>
+          <button class="key" id="kStop" title="停止（S）"><b>■</b><small>STOP</small></button>
+          <button class="key" id="kPause" title="暂停（P）"><b>❚❚</b><small>PAUSE</small></button>
+        </div>
+        <div class="speed" id="speed">
+          <span class="lbl" style="left:2px;top:0">TAPE SPEED 播放速度</span>
+          <div class="groove"></div>
+          <div class="thumb" id="spThumb"></div>
+          <button class="hit" id="spHit" aria-label="切换播放速度"></button>
+          <button class="stop" data-v="0.5" style="left:23px">0.5×</button>
+          <button class="stop" data-v="1" style="left:73px">1×</button>
+          <button class="stop" data-v="1.5" style="left:123px">1.5×</button>
+        </div>
+        <span class="lbl" style="left:166px;top:100px">LEVEL 电平</span>
+        <div class="meter" id="meter"><i></i><i></i><i></i><i></i><i></i><i></i><i class="y"></i><i class="y"></i><i class="r"></i><i class="r"></i></div>
+        <div class="hint">单击 ◀◀ / ▶▶ 跳 5 秒<br>长按匀速倒带 / 快进，松开即停</div>
+      </div>
+
+      <div class="ctrls">
+        <span class="lbl" style="left:24px;top:4px">TUNING 调谐</span>
+        <div class="dial-ring"></div>
+        <div class="dial" id="dial" tabindex="0" role="slider" aria-label="电台频道拨盘" title="拖动旋转 / 滚轮 / 方向键 切换电台"><div class="face"></div></div>
+        <span class="lbl" style="left:14px;top:126px">◀ 拨动换台 ▶</span>
+        <div class="knob-box" style="left:122px;top:4px"><div class="knob-ring"></div><div class="knob" id="kVolRadio" tabindex="0" role="slider" aria-label="电台音量" title="上下拖动 / 滚轮 调节电台音量"></div><span class="lbl">RADIO VOL</span></div>
+        <div class="knob-box" style="left:122px;top:74px"><div class="knob-ring"></div><div class="knob" id="kVolTape" tabindex="0" role="slider" aria-label="磁带音量" title="上下拖动 / 滚轮 调节磁带音量"></div><span class="lbl">TAPE VOL</span></div>
+        <div class="fnsw" id="fnsw"><i class="sl"></i><button data-f="tape" class="cur">TAPE 磁带</button><button data-f="radio">RADIO 电台</button></div>
+      </div>
+
+      <div class="lib">
+        <div class="hd"><span>磁带库 TAPE LIB</span><small id="libCount">0 段</small></div>
+        <button class="tg t1" id="tgLoop" title="单段循环播放">⟲ 单段循环</button>
+        <button class="tg t2" id="tgMix" title="勾选多段同时叠加播放">≋ 多段叠加</button>
+        <ul id="segList"></ul>
+        <div class="ft"><span id="libTotal">共 00:00</span><span>MAX 10:00/段</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal" id="modal" hidden role="dialog" aria-modal="true" aria-labelledby="mTitle">
+    <div class="card">
+      <h3 id="mTitle">提示</h3>
+      <div id="mText"></div>
+      <div class="btns"><button id="mRetry" class="primary" hidden>重新授权</button><button id="mOk">知道了</button></div>
+    </div>
+  </div>
+</div>
+
+<script>
+(() => {
+'use strict';
+
+/* ======================================================
+ *  配置
+ * ====================================================== */
+// 10 个国内公开网络广播（央广系列，蜻蜓FM公开直播流）。
+// urls 依次尝试；全部失败后会到 Radio-Browser 公共目录按名称查找新地址，仍失败则自动切到下一个频道。
+const STATIONS = [
+  { name:'中国之声',     freq:'106.1', qt:386, hls:'zgzs'  },
+  { name:'经济之声',     freq:'96.6',  qt:387, hls:'jjzs'  },
+  { name:'音乐之声',     freq:'90.0',  qt:388, hls:'yyzs'  },
+  { name:'经典音乐广播', freq:'101.8', qt:389, hls:'dszs'  },
+  { name:'台海之声',     freq:'87.8',  qt:390, hls:'zhzs'  },
+  { name:'神州之声',     freq:'106.2', qt:391, hls:'szzs'  },
+  { name:'大湾区之声',   freq:'101.2', qt:392, hls:'hxzs'  },
+  { name:'民族之声',     freq:'NET',   qt:393, hls:'mzzs'  },
+  { name:'文艺之声',     freq:'106.6', qt:394, hls:'wyzs'  },
+  { name:'老年之声',     freq:'104.4', qt:395, hls:'lnzs'  },
+];
+const canHls = !!document.createElement('audio').canPlayType('application/vnd.apple.mpegurl');
+STATIONS.forEach((s, i) => {
+  s.urls = [
+    `https://lhttp.qingting.fm/live/${s.qt}/64k.mp3`,
+    `https://lhttp.qtfm.cn/live/${s.qt}/64k.mp3`,
+  ];
+  if (canHls) s.urls.push(`https://ngcdn${String(i + 1).padStart(3, '0')}.cnr.cn/live/${s.hls}/index.m3u8`);
+  s.lookedUp = false;
+});
+const RB_HOSTS = ['de1.api.radio-browser.info', 'nl1.api.radio-browser.info', 'at1.api.radio-browser.info'];
+
+const MAX_SEG_SEC   = 600;  // 单段录音上限：10 分钟
+const SHUTTLE_SPEED = 8;    // 倒带 / 快进时磁带走速（倍）
+const SHUTTLE_SOUND = 2.2;  // 倒带音效的回放速率（产生轻微变调）
+const JUMP_SEC      = 5;
+const HOLD_MS       = 260;
+const DIAL_STEP     = 36;   // 拨盘每转 36° 换一个台
+const RADIO_TIMEOUT = 10000;
+
+/* ======================================================
+ *  工具
+ * ====================================================== */
+const $ = s => document.querySelector(s);
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const fmt = t => { t = Math.max(0, t || 0); const m = Math.floor(t / 60), s = Math.floor(t % 60); return String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0'); };
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;' }[c]));
+
+/* ======================================================
+ *  状态
+ * ====================================================== */
+const S = { fn:'tape', transport:'stop', speed:1, loop:false, mix:false, pos:0, tapeVol:.8, radioVol:.6 };
+const tape = { buffer:null, rev:null, src:null, anchorCtx:0, anchorPos:0, version:0 };
+const shuttle = { active:false, dir:0, nodes:null, wasPlaying:false, atEnd:false };
+const rec = { active:false, stream:null, mr:null, srcNode:null, take:0, part:0, partStart:0, takeStart:0, timer:null, mime:'' };
+const segments = []; let selectedId = null; let segSeq = 0;
+const radio = { on:false, idx:0, urlIdx:0, token:0, timer:null, tuneTimer:null, tried:new Set(), status:'', playing:false };
+const audio = new Audio(); audio.preload = 'none';
+
+let ctx = null, master, tapeGain, tapeAnalyser, micAnalyser, noiseGain = null;
+const ana = new Float32Array(1024);
+
+/* ======================================================
+ *  Web Audio
+ * ====================================================== */
+function ensureCtx() {
+  if (!ctx) {
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) { showModal('浏览器不支持', '<p>当前浏览器不支持 Web Audio API，请使用新版 Chrome / Edge / Firefox / Safari。</p>'); return null; }
+    ctx = new AC();
+    master = ctx.createGain(); master.connect(ctx.destination);
+    tapeGain = ctx.createGain(); tapeGain.gain.value = S.tapeVol;
+    tapeAnalyser = ctx.createAnalyser(); tapeAnalyser.fftSize = 1024;
+    tapeGain.connect(tapeAnalyser); tapeAnalyser.connect(master);
+    micAnalyser = ctx.createAnalyser(); micAnalyser.fftSize = 1024;
+    const sink = ctx.createGain(); sink.gain.value = 0; micAnalyser.connect(sink); sink.connect(ctx.destination); // 保证分析节点被驱动，但不回放麦克风
+  }
+  if (ctx.state === 'suspended') ctx.resume();
+  return ctx;
+}
+function levelOf(an) {
+  an.getFloatTimeDomainData(ana);
+  let s = 0; for (let i = 0; i < ana.length; i++) s += ana[i] * ana[i];
+  const rms = Math.sqrt(s / ana.length);
+  return clamp((20 * Math.log10(rms + 1e-8) + 48) / 44, 0, 1);
+}
+let noiseBuf = null;
+function getNoiseBuf() {
+  if (!noiseBuf) {
+    noiseBuf = ctx.createBuffer(1, ctx.sampleRate * 2, ctx.sampleRate);
+    const d = noiseBuf.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+  }
+  return noiseBuf;
+}
+// 按键机械声
+function keyClick(heavy) {
+  if (!ensureCtx()) return;
+  const t = ctx.currentTime;
+  const n = ctx.createBufferSource(); n.buffer = getNoiseBuf();
+  const f = ctx.createBiquadFilter(); f.type = 'highpass'; f.frequency.value = heavy ? 900 : 1600;
+  const g = ctx.createGain(); g.gain.setValueAtTime(heavy ? .32 : .22, t); g.gain.exponentialRampToValueAtTime(.001, t + .045);
+  n.connect(f).connect(g).connect(master); n.start(t, Math.random()); n.stop(t + .06);
+  const o = ctx.createOscillator(); o.frequency.setValueAtTime(heavy ? 150 : 210, t); o.frequency.exponentialRampToValueAtTime(55, t + .07);
+  const og = ctx.createGain(); og.gain.setValueAtTime(.2, t); og.gain.exponentialRampToValueAtTime(.001, t + .08);
+  o.connect(og).connect(master); o.start(t); o.stop(t + .09);
+}
+function tick() {
+  if (!ctx) return;
+  const t = ctx.currentTime;
+  const o = ctx.createOscillator(); o.type = 'square'; o.frequency.value = 2400;
+  const g = ctx.createGain(); g.gain.setValueAtTime(.025, t); g.gain.exponentialRampToValueAtTime(.0005, t + .018);
+  o.connect(g).connect(master); o.start(t); o.stop(t + .02);
+}
+// 调谐沙沙声
+function noiseLevel(v) {
+  if (!ctx) return;
+  if (!noiseGain) {
+    const n = ctx.createBufferSource(); n.buffer = getNoiseBuf(); n.loop = true;
+    const bp = ctx.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 2600; bp.Q.value = .45;
+    noiseGain = ctx.createGain(); noiseGain.gain.value = 0;
+    n.connect(bp).connect(noiseGain).connect(master); n.start();
+  }
+  noiseGain.gain.setTargetAtTime(v * S.radioVol, ctx.currentTime, .04);
+}
+
+/* ======================================================
+ *  磁带：播放引擎
+ * ====================================================== */
+const dur = () => tape.buffer ? tape.buffer.duration : 0;
+const playing = () => S.transport === 'play' && !!tape.src;
+
+function getPos() {
+  if (playing()) {
+    let p = tape.anchorPos + (ctx.currentTime - tape.anchorCtx) * S.speed;
+    const d = dur();
+    if (S.loop && d > 0) p %= d; else p = Math.min(p, d);
+    return p;
+  }
+  return S.pos;
+}
+function stopSource() {
+  if (tape.src) { const s = tape.src; tape.src = null; try { s.stop(); } catch (e) {} s.disconnect(); }
+}
+function startPlayback() {
+  if (!ensureCtx()) return;
+  if (!tape.buffer) { flash('磁带仓为空：先录音或在磁带库中选择'); setTransport('stop'); return; }
+  if (S.pos >= dur() - .05) S.pos = 0;
+  stopSource();
+  const src = ctx.createBufferSource();
+  src.buffer = tape.buffer; src.loop = S.loop; src.playbackRate.value = S.speed;
+  src.connect(tapeGain);
+  src.onended = () => {
+    if (tape.src !== src) return;           // 手动停止的不处理
+    tape.src = null; S.pos = dur(); setTransport('stop'); flash('磁带走到尽头 · 自动停止');
+  };
+  src.start(0, S.pos);
+  tape.src = src; tape.anchorCtx = ctx.currentTime; tape.anchorPos = S.pos;
+  setTransport('play');
+}
+function holdPosition() { S.pos = getPos(); stopSource(); }
+function seek(t) {
+  S.pos = clamp(t, 0, dur());
+  if (playing()) startPlayback();
+  updateTapeUI(true);
+}
+function setSpeed(v) {
+  if (playing()) {
+    S.pos = getPos(); tape.anchorPos = S.pos; tape.anchorCtx = ctx.currentTime;
+    tape.src.playbackRate.setValueAtTime(v, ctx.currentTime);
+  }
+  S.speed = v;
+  const x = { 0.5:23, 1:73, 1.5:123 }[v];
+  $('#spThumb').style.left = (x) + 'px';
+  document.querySelectorAll('.speed .stop').forEach(b => b.classList.toggle('cur', +b.dataset.v === v));
+  updateLCD();
+}
+function setLoop(on) {
+  if (playing()) { S.pos = getPos(); tape.anchorPos = S.pos; tape.anchorCtx = ctx.currentTime; tape.src.loop = on; }
+  S.loop = on; $('#tgLoop').classList.toggle('on', on); updateLCD();
+}
+function setTransport(t) {
+  S.transport = t;
+  $('#kPlay').classList.toggle('down', t === 'play' || t === 'pause');
+  $('#kPause').classList.toggle('down', t === 'pause');
+  updateLCD();
+}
+
+/* ----- 倒带 / 快进 ----- */
+function reverseBuffer(b) {
+  const r = ctx.createBuffer(b.numberOfChannels, b.length, b.sampleRate);
+  for (let c = 0; c < b.numberOfChannels; c++) {
+    const s = b.getChannelData(c), d = r.getChannelData(c), n = s.length;
+    for (let i = 0; i < n; i++) d[i] = s[n - 1 - i];
+  }
+  return r;
+}
+function startShuttle(dir) {
+  if (!ensureCtx()) return false;
+  if (!tape.buffer) { flash('磁带仓为空'); return false; }
+  shuttle.wasPlaying = S.transport === 'play';
+  if (playing()) holdPosition();
+  shuttle.active = true; shuttle.dir = dir; shuttle.atEnd = false;
+  const d = dur();
+  if ((dir < 0 && S.pos <= 0.02) || (dir > 0 && S.pos >= d - 0.02)) { shuttle.atEnd = true; updateLCD(); return true; }
+  // —— 变调的走带声：倍速 + 颤动(wow) + 带通，再叠一点马达嗡声 ——
+  const buf = dir > 0 ? tape.buffer : (tape.rev || (tape.rev = reverseBuffer(tape.buffer)));
+  const t = ctx.currentTime;
+  const s = ctx.createBufferSource(); s.buffer = buf; s.loop = true; s.playbackRate.value = SHUTTLE_SOUND;
+  s.detune.value = dir > 0 ? -90 : -180;
+  const lfo = ctx.createOscillator(); lfo.frequency.value = 5.5;
+  const lg = ctx.createGain(); lg.gain.value = 55; lfo.connect(lg).connect(s.detune);
+  const bp = ctx.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 1700; bp.Q.value = .55;
+  const g = ctx.createGain(); g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(.38, t + .12);
+  s.connect(bp).connect(g).connect(tapeGain);
+  const m = ctx.createOscillator(); m.type = 'sawtooth'; m.frequency.setValueAtTime(70, t); m.frequency.linearRampToValueAtTime(dir > 0 ? 118 : 104, t + .25);
+  const ml = ctx.createBiquadFilter(); ml.type = 'lowpass'; ml.frequency.value = 480;
+  const mg = ctx.createGain(); mg.gain.setValueAtTime(0, t); mg.gain.linearRampToValueAtTime(.03, t + .1);
+  m.connect(ml).connect(mg).connect(tapeGain);
+  const off = dir > 0 ? S.pos : d - S.pos;
+  s.start(t, clamp(off, 0, Math.max(0, d - .01))); lfo.start(t); m.start(t);
+  shuttle.nodes = { s, lfo, m, g, mg };
+  updateLCD();
+  return true;
+}
+function stopShuttleSound() {
+  const n = shuttle.nodes; if (!n) return; shuttle.nodes = null;
+  const t = ctx.currentTime;
+  n.g.gain.cancelScheduledValues(t); n.g.gain.setTargetAtTime(0, t, .02);
+  n.mg.gain.cancelScheduledValues(t); n.mg.gain.setTargetAtTime(0, t, .02);
+  [n.s, n.lfo, n.m].forEach(x => { try { x.stop(t + .12); } catch (e) {} });
+}
+function endShuttle() {
+  if (!shuttle.active) return;
+  shuttle.active = false; stopShuttleSound();
+  if (shuttle.wasPlaying) { if (S.pos < dur() - .05) startPlayback(); else setTransport('stop'); }
+  flash('停在 ' + fmt(S.pos));
+  updateLCD();
+}
+
+/* ======================================================
+ *  磁带库：片段、叠加、内存管理
+ * ====================================================== */
+function toMono(b) {
+  if (b.numberOfChannels === 1) return b;
+  const m = ctx.createBuffer(1, b.length, b.sampleRate), d = m.getChannelData(0);
+  for (let c = 0; c < b.numberOfChannels; c++) { const s = b.getChannelData(c); for (let i = 0; i < s.length; i++) d[i] += s[i] / b.numberOfChannels; }
+  return m;
+}
+async function decodeSeg(seg) {
+  if (seg.buffer) return seg.buffer;
+  const ab = await seg.blob.arrayBuffer();
+  const b = toMono(await ctx.decodeAudioData(ab));
+  seg.buffer = b; seg.duration = b.duration;
+  return b;
+}
+function mixBuffers(bufs) {
+  const len = Math.max(...bufs.map(b => b.length));
+  const out = ctx.createBuffer(1, len, ctx.sampleRate), d = out.getChannelData(0);
+  bufs.forEach(b => { const s = b.getChannelData(0); for (let i = 0; i < s.length; i++) d[i] += s[i]; });
+  let peak = 0; for (let i = 0; i < len; i++) { const a = Math.abs(d[i]); if (a > peak) peak = a; }
+  if (peak > .98) { const k = .98 / peak; for (let i = 0; i < len; i++) d[i] *= k; }
+  return out;
+}
+function usedSegments() { return S.mix ? segments.filter(s => s.checked) : segments.filter(s => s.id === selectedId); }
+
+async function rebuildTape(keepPos) {
+  if (!ensureCtx()) return;
+  const v = ++tape.version;
+  if (shuttle.active) { shuttle.active = false; stopShuttleSound(); }
+  if (playing()) holdPosition();
+  const used = usedSegments();
+  let buf = null;
+  if (used.length) {
+    try {
+      const bufs = await Promise.all(used.map(decodeSeg));
+      if (v !== tape.version) return;
+      buf = bufs.length === 1 ? bufs[0] : mixBuffers(bufs);
+    } catch (e) { console.warn(e); flash('磁带读取失败：该段录音可能已损坏'); }
+  }
+  if (v !== tape.version) return;
+  tape.buffer = buf; tape.rev = null;
+  segments.forEach(s => { if (!used.includes(s)) s.buffer = null; });   // 释放未使用片段的解码内存
+  S.pos = keepPos ? Math.min(S.pos, dur()) : 0;
+  if (S.transport === 'play') { buf ? startPlayback() : setTransport('stop'); }
+  if (S.transport === 'pause' && !buf) setTransport('stop');
+  renderList(); updateLCD(); updateTapeUI(true);
+}
+
+function renderList() {
+  const ul = $('#segList');
+  if (!segments.length) {
+    ul.innerHTML = '<div class="empty">尚无录音<br>按红色 REC 键开始录制</div>';
+  } else {
+    ul.innerHTML = segments.map(s => {
+      const on = S.mix ? s.checked : s.id === selectedId;
+      return `<li data-id="${s.id}" class="${S.mix ? '' : 'single'} ${on ? 'on' : ''} ${s.id === selectedId ? 'sel' : ''}">
+        <i class="ck"></i><span class="nm" title="${esc(s.name)}">${esc(s.name)}</span><span class="du">${fmt(s.duration)}</span>
+        <a href="${s.url}" download="${esc(s.name)}.${s.ext}" title="下载此段">⤓</a><button data-del="1" title="删除">×</button></li>`;
+    }).join('');
+  }
+  $('#libCount').textContent = segments.length + ' 段';
+  $('#libTotal').textContent = '共 ' + fmt(segments.reduce((a, s) => a + (s.duration || 0), 0));
+}
+$('#segList').addEventListener('click', e => {
+  const li = e.target.closest('li'); if (!li) return;
+  const seg = segments.find(s => s.id === +li.dataset.id); if (!seg) return;
+  if (e.target.closest('a')) return;
+  keyClick();
+  if (e.target.dataset.del) {
+    URL.revokeObjectURL(seg.url);
+    segments.splice(segments.indexOf(seg), 1);
+    if (selectedId === seg.id) selectedId = segments.length ? segments[segments.length - 1].id : null;
+    flash('已删除 ' + seg.name);
+    rebuildTape(false); return;
+  }
+  if (S.mix) { seg.checked = !seg.checked; selectedId = seg.id; rebuildTape(true); }
+  else { if (selectedId === seg.id) return; selectedId = seg.id; rebuildTape(false); }
+  if (S.fn === 'radio') switchFn('tape');
+});
+
+/* ======================================================
+ *  录音
+ * ====================================================== */
+function pickMime() {
+  const list = ['audio/webm;codecs=opus', 'audio/webm', 'audio/ogg;codecs=opus', 'audio/mp4'];
+  return list.find(m => window.MediaRecorder && MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported(m)) || '';
+}
+async function startRecording() {
+  if (rec.active) return;
+  if (!ensureCtx()) return;
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia || !window.MediaRecorder) {
+    showModal('无法录音', '<p>当前浏览器或打开方式不支持麦克风录音。</p><p>请使用新版 Chrome / Edge / Firefox；若通过 <b>file://</b> 打开受限，可改用 <b>http://localhost</b> 方式打开本页。</p>');
+    return;
+  }
+  $('#kRec').classList.add('down');
+  try {
+    rec.stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation:false, noiseSuppression:false, autoGainControl:true } });
+  } catch (e) {
+    $('#kRec').classList.remove('down');
+    micError(e); return;
+  }
+  if (S.fn === 'radio') switchFn('tape');
+  rec.srcNode = ctx.createMediaStreamSource(rec.stream); rec.srcNode.connect(micAnalyser);
+  rec.stream.getAudioTracks().forEach(tr => tr.addEventListener('ended', () => { if (rec.active) { stopRecording(); showModal('录音中断', '<p>麦克风已断开或被系统收回，已录制的内容已自动保存到磁带库。</p>'); } }));
+  rec.active = true; rec.take++; rec.part = 0; rec.takeStart = performance.now(); rec.mime = pickMime();
+  $('#kRec').classList.add('recording'); $('#recLed').classList.add('on');
+  startRecorderPart();
+  flash(playing() ? '叠录中：边听边录，结束后可用“多段叠加”合成' : '录音中…再次按 REC 或 STOP 结束');
+  updateLCD();
+}
+function startRecorderPart() {
+  rec.part++;
+  const take = rec.take, part = rec.part;
+  const chunks = [];
+  let mr;
+  try { mr = rec.mime ? new MediaRecorder(rec.stream, { mimeType: rec.mime }) : new MediaRecorder(rec.stream); }
+  catch (e) { stopRecording(); showModal('无法录音', '<p>录音器初始化失败：' + esc(e.message || e.name) + '</p>'); return; }
+  mr.ondataavailable = e => { if (e.data && e.data.size) chunks.push(e.data); };
+  mr.onstop = () => finalizeSegment(chunks, mr.mimeType || rec.mime || 'audio/webm', take, part);
+  mr.onerror = e => { console.warn(e); flash('录音出错，已保存当前片段'); };
+  mr.start(1000);
+  rec.mr = mr; rec.partStart = performance.now();
+  clearTimeout(rec.timer);
+  rec.timer = setTimeout(() => {          // 超过 10 分钟：自动分段
+    if (!rec.active || rec.mr !== mr) return;
+    mr.stop();
+    flash(`已录满 10 分钟 · 自动分段保存（第 ${part} 段）`);
+    startRecorderPart();
+  }, MAX_SEG_SEC * 1000);
+}
+function stopRecording() {
+  if (!rec.active) return;
+  rec.active = false; clearTimeout(rec.timer);
+  try { if (rec.mr && rec.mr.state !== 'inactive') rec.mr.stop(); } catch (e) {}
+  rec.mr = null;
+  if (rec.stream) rec.stream.getTracks().forEach(t => t.stop());
+  if (rec.srcNode) rec.srcNode.disconnect();
+  rec.stream = null; rec.srcNode = null;
+  $('#kRec').classList.remove('recording', 'down'); $('#recLed').classList.remove('on');
+  flash('录音结束，正在存入磁带库…');
+  updateLCD();
+}
+async function finalizeSegment(chunks, type, take, part) {
+  const blob = new Blob(chunks, { type });
+  if (!blob.size) { flash('录音过短，未保存'); return; }
+  const ext = /ogg/.test(type) ? 'ogg' : /mp4/.test(type) ? 'm4a' : 'webm';
+  const seg = { id: ++segSeq, name: `录音 ${String(take).padStart(2, '0')}` + (part > 1 ? `-${part}` : ''), blob, ext, url: URL.createObjectURL(blob), checked: true, buffer: null, duration: 0 };
+  try { await decodeSeg(seg); }
+  catch (e) { URL.revokeObjectURL(seg.url); console.warn(e); flash('录音解码失败，未能保存该段'); return; }
+  segments.push(seg);
+  const busy = playing() || rec.active;
+  if (!S.mix && (!busy || selectedId === null)) selectedId = seg.id;
+  if (!S.mix && selectedId !== seg.id) { seg.buffer = null; renderList(); flash(`${seg.name} 已存入磁带库`); return; }
+  await rebuildTape(busy);
+  flash(`${seg.name} 已存入磁带库（${fmt(seg.duration)}）`);
+}
+function micError(e) {
+  const n = e && e.name;
+  let title = '无法使用麦克风', html;
+  if (n === 'NotAllowedError' || n === 'PermissionDeniedError' || n === 'SecurityError') {
+    title = '麦克风权限被拒绝';
+    html = '<p>收录机需要麦克风权限才能录音。请按以下方式开启：</p>' +
+      '<p>1. 点击地址栏左侧的 <b>🔒 / ⓘ 图标</b> → 将「麦克风」设为 <b>允许</b>；<br>2. 若浏览器全局禁用了麦克风，请到 设置 → 隐私和安全 → 网站设置 → 麦克风 中开启；<br>3. 完成后点「重新授权」。</p>' +
+      (location.protocol === 'file:' ? '<p>提示：个别浏览器限制 file:// 页面使用麦克风，可改为 <b>http://localhost</b> 打开。</p>' : '');
+  } else if (n === 'NotFoundError' || n === 'DevicesNotFoundError') {
+    title = '未检测到麦克风'; html = '<p>没有找到可用的录音设备，请连接麦克风后重试。</p>';
+  } else if (n === 'NotReadableError' || n === 'TrackStartError') {
+    title = '麦克风被占用'; html = '<p>麦克风可能正被其他程序（会议软件、录音软件）占用，请关闭后重试。</p>';
+  } else {
+    html = '<p>启动麦克风失败：' + esc((e && (e.message || e.name)) || '未知错误') + '</p>';
+  }
+  showModal(title, html, true);
+  flash('麦克风不可用');
+}
+
+/* ======================================================
+ *  网络电台
+ * ====================================================== */
+function setRadioStatus(s) { radio.status = s; updateLCD(); }
+function radioOn() {
+  if (!ensureCtx()) return;
+  radio.on = true; radio.tried.clear();
+  $('#scale').classList.add('lit');
+  audio.volume = S.radioVol;
+  tuneNow();
+}
+function radioOff() {
+  radio.on = false; radio.playing = false; radio.token++;
+  clearTimeout(radio.timer); clearTimeout(radio.tuneTimer);
+  audio.pause(); audio.removeAttribute('src'); audio.load();
+  noiseLevel(0);
+  $('#scale').classList.remove('lit');
+  setRadioStatus('');
+}
+function tuneNow() {
+  radio.urlIdx = 0; startUrl();
+}
+function startUrl() {
+  const st = STATIONS[radio.idx];
+  const tok = ++radio.token;
+  clearTimeout(radio.timer);
+  radio.playing = false;
+  noiseLevel(.05);
+  setRadioStatus(`调谐中… 线路 ${radio.urlIdx + 1}/${st.urls.length}`);
+  audio.src = st.urls[radio.urlIdx];
+  const p = audio.play();
+  if (p && p.catch) p.catch(err => { if (tok === radio.token && err.name !== 'AbortError') failRadio(tok); });
+  radio.timer = setTimeout(() => failRadio(tok), RADIO_TIMEOUT);
+}
+audio.addEventListener('playing', () => {
+  if (!radio.on) return;
+  clearTimeout(radio.timer); radio.playing = true; radio.tried.clear();
+  noiseLevel(0);
+  setRadioStatus('▮▮▮ 接收良好');
+  renderStations();
+});
+audio.addEventListener('waiting', () => {
+  if (!radio.on || !radio.playing) return;
+  const tok = radio.token; noiseLevel(.025); setRadioStatus('缓冲中…');
+  clearTimeout(radio.timer); radio.timer = setTimeout(() => failRadio(tok), RADIO_TIMEOUT);
+});
+audio.addEventListener('error', () => { if (radio.on) failRadio(radio.token); });
+
+// 某个线路失败：先试本台的其他线路 → 在线目录查找 → 切到下一个频道
+async function failRadio(tok) {
+  if (tok !== radio.token || !radio.on) return;
+  clearTimeout(radio.timer);
+  radio.playing = false;
+  const st = STATIONS[radio.idx];
+  if (radio.urlIdx < st.urls.length - 1) { radio.urlIdx++; startUrl(); return; }
+  if (!st.lookedUp) {
+    st.lookedUp = true;
+    setRadioStatus('线路失效，在线查找新地址…');
+    const found = await lookupStation(st.name);
+    if (tok !== radio.token || !radio.on) return;
+    const fresh = found.filter(u => !st.urls.includes(u));
+    if (fresh.length) { st.urls.push(...fresh); radio.urlIdx++; startUrl(); return; }
+  }
+  st.dead = true;
+  radio.tried.add(radio.idx);
+  renderStations();
+  if (radio.tried.size >= STATIONS.length) {
+    noiseLevel(.02);
+    setRadioStatus('全部频道无信号');
+    flash('所有电台均无法连接，请检查网络后重新拨台');
+    return;
+  }
+  let n = radio.idx;
+  do { n = (n + 1) % STATIONS.length; } while (radio.tried.has(n));
+  flash(`${st.name} 信号中断 → 自动切换备用频道 ${STATIONS[n].name}`);
+  radio.idx = n; dialAngle += DIAL_STEP; renderDial(); renderStations();
+  tuneNow();
+}
+async function lookupStation(name) {
+  for (const host of RB_HOSTS) {
+    try {
+      const ac = new AbortController(); const to = setTimeout(() => ac.abort(), 5000);
+      const r = await fetch(`https://${host}/json/stations/search?name=${encodeURIComponent(name)}&countrycode=CN&hidebroken=true&limit=6`, { signal: ac.signal });
+      clearTimeout(to);
+      if (!r.ok) continue;
+      const list = await r.json();
+      return list.filter(s => s.url_resolved && /^https:/.test(s.url_resolved) && (!/m3u8/i.test(s.url_resolved) || canHls) && /MP3|AAC/i.test(s.codec || 'MP3'))
+                 .map(s => s.url_resolved).slice(0, 3);
+    } catch (e) { /* 换下一个目录服务器 */ }
+  }
+  return [];
+}
+
+function stepStation(d) {
+  radio.idx = (radio.idx + d + STATIONS.length) % STATIONS.length;
+  tick(); renderStations(); updateLCD();
+  if (S.fn !== 'radio') {
+    if (!playing() && !rec.active && !shuttle.active) { switchFn('radio'); return; }
+    flash('预选电台：' + STATIONS[radio.idx].name + '（切到 RADIO 收听）'); return;
+  }
+  scheduleTune();
+}
+function scheduleTune() {
+  radio.token++; clearTimeout(radio.timer); clearTimeout(radio.tuneTimer);
+  radio.playing = false; audio.pause(); noiseLevel(.07);
+  setRadioStatus('调谐中…');
+  radio.tuneTimer = setTimeout(() => { radio.tried.clear(); STATIONS[radio.idx].dead = false; tuneNow(); }, 380);
+}
+function renderStations() {
+  const box = $('#stNames');
+  if (!box.children.length) {
+    box.innerHTML = STATIONS.map((s, i) => `<button data-i="${i}" style="left:${4 + i * 92 / 9}%">${s.name}</button>`).join('');
+  }
+  [...box.children].forEach((b, i) => { b.classList.toggle('cur', i === radio.idx); b.classList.toggle('dead', !!STATIONS[i].dead); });
+  $('#needle').style.left = `calc(58px + (100% - 78px) * ${(4 + radio.idx * 92 / 9) / 100})`;
+}
+$('#stNames').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  ensureCtx();
+  const i = +b.dataset.i; const d = i - radio.idx; if (!d && S.fn === 'radio') return;
+  dialAngle += d * DIAL_STEP; renderDial();
+  radio.idx = i; stepStation(0);
+});
+
+/* ======================================================
+ *  功能切换（TAPE / RADIO）
+ * ====================================================== */
+function switchFn(f) {
+  if (S.fn === f) return;
+  S.fn = f;
+  $('#fnsw').classList.toggle('radio', f === 'radio');
+  document.querySelectorAll('#fnsw button').forEach(b => b.classList.toggle('cur', b.dataset.f === f));
+  if (f === 'radio') {
+    if (rec.active) stopRecording();
+    if (shuttle.active) endShuttle();
+    if (S.transport !== 'stop') { holdPosition(); setTransport('stop'); }
+    radioOn();
+  } else radioOff();
+  updateLCD();
+}
+$('#fnsw').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; keyClick(true); switchFn(b.dataset.f); });
+
+/* ======================================================
+ *  旋钮：拨盘 / 音量
+ * ====================================================== */
+let dialAngle = 0;
+function renderDial() { $('#dial .face').style.setProperty('--rot', dialAngle + 'deg'); }
+(() => {
+  const el = $('#dial'); let drag = null;
+  const ang = (e, c) => Math.atan2(e.clientY - c.y, e.clientX - c.x) * 180 / Math.PI;
+  el.addEventListener('pointerdown', e => {
+    ensureCtx(); el.setPointerCapture(e.pointerId);
+    const r = el.getBoundingClientRect(); const c = { x: r.left + r.width / 2, y: r.top + r.height / 2 };
+    drag = { c, last: ang(e, c), acc: 0 };
+  });
+  el.addEventListener('pointermove', e => {
+    if (!drag) return;
+    const a = ang(e, drag.c); let d = a - drag.last; if (d > 180) d -= 360; if (d < -180) d += 360;
+    drag.last = a; dialAngle += d; drag.acc += d; renderDial();
+    while (drag.acc >= DIAL_STEP) { drag.acc -= DIAL_STEP; stepStation(1); }
+    while (drag.acc <= -DIAL_STEP) { drag.acc += DIAL_STEP; stepStation(-1); }
+  });
+  const end = () => { if (!drag) return; drag = null; dialAngle = Math.round(dialAngle / DIAL_STEP) * DIAL_STEP; renderDial(); };
+  el.addEventListener('pointerup', end); el.addEventListener('pointercancel', end);
+  el.addEventListener('wheel', e => { e.preventDefault(); ensureCtx(); const d = e.deltaY > 0 ? 1 : -1; dialAngle += d * DIAL_STEP; renderDial(); stepStation(d); }, { passive: false });
+  el.addEventListener('keydown', e => {
+    const d = { ArrowRight: 1, ArrowUp: 1, ArrowLeft: -1, ArrowDown: -1 }[e.key]; if (!d) return;
+    e.preventDefault(); e.stopPropagation(); ensureCtx(); dialAngle += d * DIAL_STEP; renderDial(); stepStation(d);
+  });
+})();
+function makeKnob(el, get, set) {
+  const render = () => el.style.setProperty('--rot', (-135 + 270 * get()) + 'deg');
+  let drag = null;
+  el.addEventListener('pointerdown', e => { ensureCtx(); el.setPointerCapture(e.pointerId); drag = { y: e.clientY, x: e.clientX, v: get() }; });
+  el.addEventListener('pointermove', e => { if (!drag) return; set(clamp(drag.v + (drag.y - e.clientY + e.clientX - drag.x) / 150, 0, 1)); render(); });
+  const end = () => { drag = null; };
+  el.addEventListener('pointerup', end); el.addEventListener('pointercancel', end);
+  el.addEventListener('wheel', e => { e.preventDefault(); set(clamp(get() + (e.deltaY < 0 ? .05 : -.05), 0, 1)); render(); }, { passive: false });
+  el.addEventListener('keydown', e => {
+    const d = { ArrowUp: .05, ArrowRight: .05, ArrowDown: -.05, ArrowLeft: -.05 }[e.key]; if (!d) return;
+    e.preventDefault(); e.stopPropagation(); set(clamp(get() + d, 0, 1)); render();
+  });
+  render();
+}
+makeKnob($('#kVolRadio'), () => S.radioVol, v => {
+  S.radioVol = v; audio.volume = v;
+  if (noiseGain && ctx) noiseGain.gain.setTargetAtTime(noiseGain.gain.value > 0 ? .05 * v : 0, ctx.currentTime, .05);
+  flash('电台音量 ' + Math.round(v * 100), 900);
+});
+makeKnob($('#kVolTape'), () => S.tapeVol, v => {
+  S.tapeVol = v; if (tapeGain) tapeGain.gain.setTargetAtTime(v, ctx.currentTime, .03);
+  flash('磁带音量 ' + Math.round(v * 100), 900);
+});
+
+/* ======================================================
+ *  走带按键
+ * ====================================================== */
+$('#kRec').addEventListener('click', () => { keyClick(true); rec.active ? stopRecording() : startRecording(); });
+$('#kPlay').addEventListener('click', () => {
+  keyClick(true);
+  if (S.fn === 'radio') switchFn('tape');
+  if (shuttle.active) return;
+  if (S.transport !== 'play' || !tape.src) startPlayback();
+});
+$('#kPause').addEventListener('click', () => {
+  keyClick();
+  if (playing()) { holdPosition(); setTransport('pause'); flash('暂停于 ' + fmt(S.pos)); }
+  else if (S.transport === 'pause') startPlayback();
+  else flash('当前未在播放');
+});
+$('#kStop').addEventListener('click', () => {
+  keyClick(true);
+  if (rec.active) stopRecording();
+  if (shuttle.active) endShuttle();
+  if (S.transport !== 'stop') { holdPosition(); setTransport('stop'); }
+});
+function holdKey(el, dir) {
+  let timer = null, held = false, down = false;
+  el.addEventListener('pointerdown', e => {
+    if (e.button !== 0) return;
+    try { el.setPointerCapture(e.pointerId); } catch (err) {}
+    down = true; held = false;
+    keyClick(); el.classList.add('down');
+    if (S.fn === 'radio') switchFn('tape');
+    timer = setTimeout(() => { held = startShuttle(dir); if (held) flash(dir > 0 ? '快进中 ▶▶' : '倒带中 ◀◀'); }, HOLD_MS);
+  });
+  const up = () => {
+    if (!down) return; down = false;
+    clearTimeout(timer); el.classList.remove('down');
+    if (held) endShuttle();
+    else if (tape.buffer) { seek(getPos() + dir * JUMP_SEC); flash((dir > 0 ? '前进 ' : '后退 ') + JUMP_SEC + ' 秒 → ' + fmt(S.pos)); }
+    else flash('磁带仓为空');
+  };
+  el.addEventListener('pointerup', up); el.addEventListener('pointercancel', up);
+  el.addEventListener('keydown', e => { if ((e.key === 'Enter' || e.key === ' ') && !e.repeat) { e.preventDefault(); e.stopPropagation(); el.dispatchEvent(new PointerEvent('pointerdown', { button: 0, pointerId: 1 })); } });
+  el.addEventListener('keyup', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); up(); } });
+  return { down: () => el.dispatchEvent(new PointerEvent('pointerdown', { button: 0, pointerId: 1 })), up };
+}
+const rewKey = holdKey($('#kRew'), -1), ffKey = holdKey($('#kFf'), 1);
+
+// 速度开关
+document.querySelectorAll('.speed .stop').forEach(b => b.addEventListener('click', () => { keyClick(); setSpeed(+b.dataset.v); flash('播放速度 ' + b.textContent); }));
+$('#spHit').addEventListener('click', () => { keyClick(); const order = [0.5, 1, 1.5]; const v = order[(order.indexOf(S.speed) + 1) % 3]; setSpeed(v); flash('播放速度 ' + v + '×'); });
+
+// 循环 / 叠加
+$('#tgLoop').addEventListener('click', () => { keyClick(); setLoop(!S.loop); flash(S.loop ? '单段循环：开' : '单段循环：关'); });
+$('#tgMix').addEventListener('click', () => {
+  keyClick();
+  S.mix = !S.mix; $('#tgMix').classList.toggle('on', S.mix);
+  if (S.mix) { segments.forEach(s => s.checked = s.checked || s.id === selectedId); flash('多段叠加：勾选的片段将同时播放'); }
+  else flash('多段叠加：关（单段播放）');
+  rebuildTape(true);
+});
+
+// 磁带进度条拖动
+(() => {
+  const bar = $('#tapebar'); let drag = false;
+  const t = e => { const r = bar.getBoundingClientRect(); return clamp((e.clientX - r.left) / r.width, 0, 1) * dur(); };
+  bar.addEventListener('pointerdown', e => {
+    if (!tape.buffer) { flash('磁带仓为空'); return; }
+    if (shuttle.active) return;
+    ensureCtx(); bar.setPointerCapture(e.pointerId); drag = true; dragPos = t(e); tick();
+  });
+  bar.addEventListener('pointermove', e => { if (drag) dragPos = t(e); });
+  const end = e => { if (!drag) return; drag = false; seek(dragPos); dragPos = null; flash('跳转至 ' + fmt(S.pos)); };
+  bar.addEventListener('pointerup', end); bar.addEventListener('pointercancel', () => { drag = false; dragPos = null; });
+})();
+let dragPos = null;
+
+// 键盘快捷键
+const kb = {};
+document.addEventListener('keydown', e => {
+  if (e.target.closest && e.target.closest('button,[role=slider]') && (e.key === ' ' || e.key === 'Enter')) return;
+  if (!$('#modal').hidden) { if (e.key === 'Escape' || e.key === 'Enter') hideModal(); return; }
+  if (e.repeat) return;
+  const k = e.key.toLowerCase();
+  if (k === ' ') { e.preventDefault(); (playing() ? $('#kPause') : $('#kPlay')).click(); }
+  else if (k === 'r') $('#kRec').click();
+  else if (k === 's') $('#kStop').click();
+  else if (k === 'p') $('#kPause').click();
+  else if (e.key === 'ArrowLeft' && !kb.l) { kb.l = 1; rewKey.down(); }
+  else if (e.key === 'ArrowRight' && !kb.r) { kb.r = 1; ffKey.down(); }
+});
+document.addEventListener('keyup', e => {
+  if (e.key === 'ArrowLeft' && kb.l) { kb.l = 0; rewKey.up(); }
+  if (e.key === 'ArrowRight' && kb.r) { kb.r = 0; ffKey.up(); }
+});
+
+/* ======================================================
+ *  弹窗 / 显示屏
+ * ====================================================== */
+function showModal(title, html, retry) {
+  $('#mTitle').textContent = title; $('#mText').innerHTML = html;
+  $('#mRetry').hidden = !retry; $('#modal').hidden = false; $('#mOk').focus();
+}
+function hideModal() { $('#modal').hidden = true; }
+$('#mOk').addEventListener('click', () => { keyClick(); hideModal(); });
+$('#mRetry').addEventListener('click', () => { keyClick(); hideModal(); startRecording(); });
+
+let msgTimer = null;
+const DEFAULT_MSG = () => S.fn === 'radio' ? '转动 TUNING 拨盘或点击刻度换台' : (tape.buffer ? '▶ 播放 · 长按 ◀◀/▶▶ 倒带快进' : '按红色 REC 键开始录音');
+function flash(msg, ms = 3200) {
+  $('#lcdMsg').textContent = msg;
+  clearTimeout(msgTimer); msgTimer = setTimeout(() => { $('#lcdMsg').textContent = DEFAULT_MSG(); }, ms);
+}
+function tapeTitle() {
+  const used = usedSegments();
+  if (!used.length) return '— 无磁带 —';
+  if (used.length === 1) return used[0].name;
+  return `叠加 ${used.length} 段`;
+}
+function updateLCD() {
+  const fr = (id, on) => $(id).classList.toggle('on', !!on);
+  fr('#fRec', rec.active); fr('#fLoop', S.loop); fr('#fMix', S.mix); fr('#fSt', S.fn === 'radio' && radio.playing);
+  if (S.fn === 'radio') {
+    const st = STATIONS[radio.idx];
+    $('#lcdMode').textContent = `◉ FM RADIO · CH${String(radio.idx + 1).padStart(2, '0')}`;
+    $('#lcdMain').textContent = st.name;
+    $('#lcdSub').textContent = st.freq === 'NET' ? 'NET STREAM' : `FM ${st.freq} MHz`;
+    $('#lcdRight').textContent = radio.status || '';
+  } else {
+    const st = rec.active ? 'REC' : shuttle.active ? (shuttle.dir > 0 ? 'F.FWD' : 'REW') : { play:'PLAY', pause:'PAUSE', stop:'STOP' }[S.transport];
+    $('#lcdMode').textContent = `◉ TAPE · ${st}`;
+    $('#lcdMain').textContent = rec.active ? `● 录音中 第${rec.part}段` : tapeTitle();
+    $('#lcdRight').textContent = '×' + S.speed.toFixed(1);
+    lastTapeText = '';
+  }
+  $('#csTitle').textContent = rec.active ? `录音 ${String(rec.take).padStart(2, '0')} · REC` : (tape.buffer ? tapeTitle() : '空白磁带');
+  $('#playLed').classList.toggle('on', playing() || (shuttle.active && !shuttle.atEnd));
+}
+let lastTapeText = '';
+function updateTapeUI(force) {
+  const d = dur(); const p = dragPos != null ? dragPos : getPos();
+  const f = d ? p / d : 0;
+  $('#tbHead').style.left = `calc(8px + (100% - 16px) * ${f})`;
+  $('#tbFill').style.width = `calc((100% - 6px) * ${f})`;
+  $('#tapebar').classList.toggle('empty', !tape.buffer);
+  let txt;
+  if (rec.active && S.fn === 'tape') {
+    const el = (performance.now() - rec.takeStart) / 1000, pe = (performance.now() - rec.partStart) / 1000;
+    txt = `REC ${fmt(el)} · 段剩 ${fmt(MAX_SEG_SEC - pe)}`;
+  } else txt = `${fmt(p)} / ${fmt(d)}`;
+  if (S.fn === 'tape' && (force || txt !== lastTapeText)) { $('#lcdSub').textContent = txt; lastTapeText = txt; }
+  $('#tCur').textContent = fmt(p); $('#tDur').textContent = fmt(d);
+  const c = String(Math.floor(p) % 1000).padStart(3, '0');
+  const cs = $('#counter').children; for (let i = 0; i < 3; i++) if (cs[i].textContent !== c[i]) cs[i].textContent = c[i];
+}
+
+/* ======================================================
+ *  动画：磁带轮 / 电平表 / 喇叭
+ * ====================================================== */
+const reelCv = $('#reels'), rc = reelCv.getContext('2d');
+const vuCv = $('#vu'), vc = vuCv.getContext('2d');
+(function hiDPI() {
+  const r = window.devicePixelRatio || 1;
+  [[reelCv, rc, 232, 56], [vuCv, vc, 116, 66]].forEach(([c, x, w, h]) => { c.width = w * r; c.height = h * r; x.setTransform(r, 0, 0, r, 0, 0); });
+})();
+let angL = 0, angR = 0, level = 0, peak = 0, peakT = 0, fakeRadio = 0;
+
+function drawReels(frac) {
+  const W = 232, H = 56, cy = 28, xL = 56, xR = 176, rMin = 12, rMax = 26;
+  rc.clearRect(0, 0, W, H);
+  const g = rc.createLinearGradient(0, 0, 0, H); g.addColorStop(0, '#221a13'); g.addColorStop(1, '#0f0b08');
+  rc.fillStyle = g; rc.fillRect(0, 0, W, H);
+  const rL = rMin + (rMax - rMin) * Math.sqrt(1 - frac), rR = rMin + (rMax - rMin) * Math.sqrt(frac);
+  // 两轮之间的磁带
+  rc.strokeStyle = '#3a2416'; rc.lineWidth = 2;
+  rc.beginPath(); rc.moveTo(xL, cy + rL); rc.lineTo(W / 2 - 40, H); rc.moveTo(xR, cy + rR); rc.lineTo(W / 2 + 40, H); rc.stroke();
+  [[xL, rL, angL], [xR, rR, angR]].forEach(([x, r, a]) => {
+    // 磁带卷
+    const tg = rc.createRadialGradient(x - r * .3, cy - r * .3, 2, x, cy, r);
+    tg.addColorStop(0, '#6b4429'); tg.addColorStop(.7, '#40261a'); tg.addColorStop(1, '#2a180e');
+    rc.fillStyle = tg; rc.beginPath(); rc.arc(x, cy, r, 0, Math.PI * 2); rc.fill();
+    rc.strokeStyle = 'rgba(255,220,180,.08)'; rc.lineWidth = 1;
+    for (let k = rMin + 3; k < r; k += 3.5) { rc.beginPath(); rc.arc(x, cy, k, 0, Math.PI * 2); rc.stroke(); }
+    // 白色轴心 + 齿
+    rc.save(); rc.translate(x, cy); rc.rotate(a);
+    rc.fillStyle = '#efe9dc'; rc.beginPath(); rc.arc(0, 0, 10.5, 0, Math.PI * 2); rc.fill();
+    rc.fillStyle = '#1a140f'; rc.beginPath(); rc.arc(0, 0, 6, 0, Math.PI * 2); rc.fill();
+    rc.fillStyle = '#efe9dc';
+    for (let i = 0; i < 6; i++) { rc.rotate(Math.PI / 3); rc.fillRect(-1.3, -6.2, 2.6, 3.4); }
+    rc.strokeStyle = '#b9b09c'; rc.lineWidth = 1;
+    for (let i = 0; i < 3; i++) { rc.rotate(Math.PI * 2 / 3); rc.beginPath(); rc.arc(0, -8.3, 1.4, 0, Math.PI * 2); rc.stroke(); }
+    rc.restore();
+  });
+  // 中间刻度窗
+  rc.strokeStyle = 'rgba(255,255,255,.16)'; rc.lineWidth = 1;
+  for (let i = 0; i < 7; i++) { const x = W / 2 - 18 + i * 6; rc.beginPath(); rc.moveTo(x, 20); rc.lineTo(x, i % 3 === 0 ? 36 : 30); rc.stroke(); }
+  return { rL, rR };
+}
+function drawVU(l) {
+  const W = 116, H = 66;
+  vc.clearRect(0, 0, W, H);
+  vc.font = '8px "Courier New",monospace'; vc.fillStyle = 'rgba(143,248,207,.75)';
+  vc.fillText('L', 2, 16); vc.fillText('R', 2, 34);
+  const segs = 14, sw = 6, gap = 1.2, x0 = 12;
+  [[10, l], [28, clamp(l * (0.92 + Math.random() * .12), 0, 1)]].forEach(([y, v]) => {
+    const n = Math.round(v * segs);
+    for (let i = 0; i < segs; i++) {
+      const on = i < n, c = i >= 12 ? [255, 90, 70] : i >= 9 ? [255, 200, 70] : [120, 255, 190];
+      vc.fillStyle = `rgba(${c[0]},${c[1]},${c[2]},${on ? .95 : .1})`;
+      vc.fillRect(x0 + i * (sw + gap), y, sw, 9);
+    }
+  });
+  const px = x0 + Math.min(segs - 1, Math.round(peak * segs)) * (sw + gap);
+  if (peak > .02) { vc.fillStyle = 'rgba(255,255,255,.85)'; vc.fillRect(px, 8, sw, 1.5); }
+  vc.fillStyle = 'rgba(143,248,207,.55)';
+  vc.fillText('-20  -10  -5  0 +3', 12, 52);
+  vc.fillText(rec.active ? 'MIC INPUT' : S.fn === 'radio' ? 'RADIO' : 'TAPE OUT', 12, 63);
+}
+const meterLeds = [...document.querySelectorAll('#meter i')];
+const cones = [...document.querySelectorAll('.cone')];
+let lastT = performance.now();
+function frame(now) {
+  const dt = Math.min(.1, (now - lastT) / 1000); lastT = now;
+  const d = dur();
+  // 倒带 / 快进：匀速走带
+  if (shuttle.active && !shuttle.atEnd) {
+    S.pos += shuttle.dir * SHUTTLE_SPEED * dt;
+    if (S.pos <= 0 || S.pos >= d) {
+      S.pos = clamp(S.pos, 0, d); shuttle.atEnd = true; stopShuttleSound();
+      flash(shuttle.dir < 0 ? '已倒带至开头' : '已快进至末尾'); updateLCD();
+    }
+  }
+  const p = getPos();
+  let frac = d ? p / d : 0;
+  if (rec.active && !playing()) frac = clamp((now - rec.partStart) / 1000 / MAX_SEG_SEC, 0, 1);
+  // 线速度恒定，轮径越小转得越快
+  let v = 0;
+  if (playing()) v = 26 * S.speed;
+  else if (rec.active) v = 26;
+  if (shuttle.active && !shuttle.atEnd) v = 26 * SHUTTLE_SPEED * .55 * shuttle.dir;
+  const { rL, rR } = drawReels(frac);
+  angL += v / rL * dt; angR += v / rR * dt;
+
+  // 电平
+  let target = 0;
+  if (ctx) {
+    if (rec.active) target = Math.max(target, levelOf(micAnalyser));
+    if (playing() || shuttle.nodes) target = Math.max(target, levelOf(tapeAnalyser));
+  }
+  if (S.fn === 'radio' && radio.playing && !audio.paused) {
+    fakeRadio += (Math.random() * .55 + .3 - fakeRadio) * .25;
+    target = Math.max(target, fakeRadio * S.radioVol * 1.25);
+  }
+  level += (target - level) * (target > level ? .55 : .12);
+  if (level > peak) { peak = level; peakT = now; } else if (now - peakT > 700) peak = Math.max(0, peak - dt * .6);
+  drawVU(level);
+  const n = Math.round(level * meterLeds.length);
+  meterLeds.forEach((m, i) => m.classList.toggle('on', i < n));
+  const pump = 1 + level * .035 * (Math.random() * .5 + .75);
+  cones.forEach(c => c.style.setProperty('--pump', pump.toFixed(3)));
+
+  updateTapeUI();
+  requestAnimationFrame(frame);
+}
+
+/* ======================================================
+ *  适配：窗口小于机身时等比缩小
+ * ====================================================== */
+function fit() {
+  const s = Math.min(1, (innerWidth - 16) / 800, (innerHeight - 16) / 600);
+  $('#machine').style.transform = s < 1 ? `scale(${s})` : '';
+}
+addEventListener('resize', fit);
+
+/* ====================================================== */
+fit(); renderStations(); renderList(); setSpeed(1); updateLCD(); flash('欢迎使用 · 按红色 REC 键开始录音', 5000);
+requestAnimationFrame(frame);
+addEventListener('beforeunload', e => { if (segments.length || rec.active) { e.preventDefault(); e.returnValue = ''; } });
+})();
+</script>
+</body>
+</html>
