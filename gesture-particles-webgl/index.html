@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>手势交互粒子引擎</title>
+<link rel="icon" href="data:,">
+<style>
+  :root { --fg: #dfe8ff; --dim: #7d8aa8; --acc: #5fe8ff; --acc2: #ff5fd2; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; overflow: hidden; background: #01020a; color: var(--fg);
+    font: 13px/1.5 -apple-system, "PingFang SC", "Microsoft YaHei", "Noto Sans CJK SC", sans-serif; }
+  #stage { position: fixed; inset: 0; width: 100vw; height: 100vh; display: block; cursor: crosshair; }
+  .hidden { display: none !important; }
+  .glass { background: rgba(8, 12, 30, 0.55); border: 1px solid rgba(120, 160, 255, 0.18); border-radius: 10px; backdrop-filter: blur(6px); }
+
+  #hud { position: fixed; left: 14px; top: 14px; padding: 10px 14px; min-width: 260px; pointer-events: none; font-variant-numeric: tabular-nums; }
+  #hud .ok { color: #6dff9c; font-size: 16px; } #hud .bad { color: #ff6d6d; font-size: 16px; }
+  #hud .dim, .dim { color: var(--dim); }
+  #hud .hands { margin-top: 6px; padding-top: 6px; border-top: 1px solid rgba(255,255,255,.08); }
+
+  #legend { position: fixed; right: 14px; top: 14px; padding: 8px 10px; pointer-events: none; }
+  #legend .row { display: grid; grid-template-columns: 26px 92px auto; gap: 4px; align-items: center; padding: 3px 6px; border-radius: 6px; opacity: .55; transition: all .25s; }
+  #legend .row.on { opacity: 1; background: linear-gradient(90deg, rgba(95,232,255,.22), rgba(255,95,210,.12)); box-shadow: 0 0 12px rgba(95,232,255,.25); }
+  #legend .ico { font-size: 17px; text-align: center; } #legend .fx { color: var(--acc); }
+
+  #help { position: fixed; left: 50%; bottom: 12px; transform: translateX(-50%); padding: 6px 14px; color: var(--dim); white-space: nowrap; pointer-events: none; font-size: 12px; }
+  #help b { color: var(--fg); font-weight: 600; }
+  body.nohud #hud, body.nohud #legend, body.nohud #help { display: none; }
+
+  #preview { position: fixed; right: 14px; bottom: 44px; width: 240px; aspect-ratio: 4/3; overflow: hidden; border-radius: 10px; border: 1px solid rgba(120,160,255,.25); }
+  #preview video, #preview canvas { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); }
+  #preview video { opacity: .55; }
+
+  #panel { position: fixed; left: 14px; bottom: 44px; width: 280px; padding: 12px 14px; }
+  #panel h3 { margin: 0 0 8px; font-size: 14px; } #panel small { color: var(--dim); font-weight: normal; }
+  #panel label { display: flex; justify-content: space-between; align-items: center; margin: 6px 0; gap: 8px; }
+  #panel input[type=range] { width: 140px; } #panel select { background: #0b1230; color: var(--fg); border: 1px solid #2a3870; border-radius: 4px; }
+  #panel .sub { margin: 10px 0 4px; color: var(--dim); }
+  #panel .grid { display: grid; grid-template-columns: 1fr 1fr; } #panel .chk { justify-content: flex-start; margin: 2px 0; }
+
+  #toast { position: fixed; left: 50%; top: 18px; transform: translate(-50%, -20px); padding: 8px 16px; opacity: 0; transition: all .3s; pointer-events: none; }
+  #toast.on { opacity: 1; transform: translate(-50%, 0); }
+
+  #start { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; background: radial-gradient(circle at 50% 45%, rgba(10,20,60,.55), rgba(0,0,0,.85)); z-index: 10; }
+  #start .card { text-align: center; padding: 34px 44px; max-width: 560px; }
+  #start h1 { margin: 0 0 6px; font-size: 30px; letter-spacing: 2px; background: linear-gradient(90deg, var(--acc), var(--acc2)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  #start p { color: var(--dim); margin: 6px 0 20px; }
+  #start button { margin: 6px; padding: 11px 20px; font-size: 14px; color: var(--fg); background: rgba(30,50,120,.5); border: 1px solid rgba(95,232,255,.45); border-radius: 8px; cursor: pointer; transition: all .2s; }
+  #start button:hover { background: rgba(60,90,200,.6); box-shadow: 0 0 16px rgba(95,232,255,.4); }
+  #start button.primary { border-color: var(--acc2); background: linear-gradient(90deg, rgba(40,120,200,.6), rgba(170,40,160,.6)); }
+  #status { margin-top: 14px; min-height: 20px; color: #ffd36d; font-size: 12px; }
+  #start .gestures { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px 14px; margin: 0 0 20px; font-size: 12px; color: var(--fg); text-align: left; }
+</style>
+</head>
+<body>
+  <canvas id="stage"></canvas>
+
+  <div id="hud" class="glass"></div>
+  <div id="legend" class="glass"></div>
+  <div id="help" class="glass">
+    <b>H</b> 隐藏界面 · <b>C</b> 摄像头小窗 · <b>P</b> 设置 · <b>T</b> 换主题 · <b>Q</b> 画质 · <b>A</b> 自动降级 · <b>M</b> 静音 · <b>F</b> 全屏
+    <span class="dim"> | 模拟：1张开 2握拳 3指向 4捏合 5上抬 7剪刀 6双手 0无手</span>
+  </div>
+  <div id="preview" class="hidden"><video id="cam" playsinline muted></video><canvas id="skel"></canvas></div>
+  <div id="panel" class="glass hidden"></div>
+  <div id="toast" class="glass"></div>
+
+  <div id="start">
+    <div class="card glass">
+      <h1>手势交互粒子引擎</h1>
+      <p>摄像头实时手势识别 · GPU 粒子 · 实时合成音效</p>
+      <div class="gestures">
+        <span>🖐 张开 → 拖尾</span><span>✊ 握拳 → 闪爆</span><span>☝ 指向 → 闪电</span>
+        <span>🤏 捏合 → 漩涡</span><span>🫴 掌心上抬 → 飘散</span><span>🙌 双手 → 缩放/音高</span>
+      </div>
+      <button id="btn-cam" class="primary">📷 摄像头模式</button>
+      <button id="btn-sim">🖱 鼠标模拟</button>
+      <button id="btn-demo">▶ 自动演示</button>
+      <div id="status"></div>
+    </div>
+  </div>
+
+  <script type="module" src="./src/main.js"></script>
+</body>
+</html>

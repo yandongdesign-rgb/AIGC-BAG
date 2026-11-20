@@ -1,0 +1,116 @@
+{
+  "loop_avg_fps_while_recording": 6.0,
+  "metrics": [
+    {
+      "frames": 37,
+      "fps": 96.5680801155906,
+      "frameMs": 0.7437019618338391,
+      "latency": 0,
+      "detectMs": 0,
+      "particles": 2109,
+      "quality": "超高",
+      "source": "demo",
+      "shot": "01_open_palm_trail",
+      "t": 2.5
+    },
+    {
+      "frames": 31,
+      "fps": 125.63962312512999,
+      "frameMs": 1.772422666047498,
+      "latency": 0,
+      "detectMs": 0,
+      "particles": 6015,
+      "quality": "超高",
+      "source": "demo",
+      "shot": "02_fist_burst",
+      "t": 5.75
+    },
+    {
+      "frames": 33,
+      "fps": 116.0952485957945,
+      "frameMs": 1.065133300968937,
+      "latency": 0,
+      "detectMs": 0,
+      "particles": 907,
+      "quality": "超高",
+      "source": "demo",
+      "shot": "03_point_lightning",
+      "t": 10.5
+    },
+    {
+      "frames": 37,
+      "fps": 96.50163612377048,
+      "frameMs": 0.9906336314722526,
+      "latency": 0,
+      "detectMs": 0,
+      "particles": 1841,
+      "quality": "超高",
+      "source": "demo",
+      "shot": "04_pinch_vortex",
+      "t": 15.0
+    },
+    {
+      "frames": 38,
+      "fps": 92.60042042129103,
+      "frameMs": 0.8158380011738602,
+      "latency": 0,
+      "detectMs": 0,
+      "particles": 1898,
+      "quality": "超高",
+      "source": "demo",
+      "shot": "05_palm_up_scatter",
+      "t": 19.5
+    },
+    {
+      "frames": 36,
+      "fps": 100.12784374328237,
+      "frameMs": 1.263847197140507,
+      "latency": 0,
+      "detectMs": 0,
+      "particles": 3256,
+      "quality": "超高",
+      "source": "demo",
+      "shot": "06_dual_vortex_scale",
+      "t": 22.5
+    },
+    {
+      "frames": 36,
+      "fps": 100.71769885747501,
+      "frameMs": 0.7980045406149248,
+      "latency": 0,
+      "detectMs": 0,
+      "particles": 1975,
+      "quality": "超高",
+      "source": "demo",
+      "shot": "07_point_open_overlay",
+      "t": 26.5
+    },
+    {
+      "frames": 37,
+      "fps": 98.09328021660973,
+      "frameMs": 0.6647420701664954,
+      "latency": 0,
+      "detectMs": 0,
+      "particles": 174,
+      "quality": "超高",
+      "source": "demo",
+      "shot": "08_idle_fallback",
+      "t": 29.4
+    },
+    {
+      "frames": 40,
+      "fps": 86.7284184938907,
+      "frameMs": 0.7389724215558893,
+      "latency": 0,
+      "detectMs": 0,
+      "particles": 416,
+      "quality": "超高",
+      "source": "demo",
+      "shot": "09_plugin_victory_ripple",
+      "t": 32.4
+    }
+  ],
+  "errors": [],
+  "mode": "headless-swiftshader",
+  "query": "quality=0"
+}
