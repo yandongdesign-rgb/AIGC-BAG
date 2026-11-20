@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0b2226">
+<title>山涧飞瀑 · 动态壁纸</title>
+<style>
+  html, body { margin: 0; height: 100%; background: #071417; overflow: hidden; touch-action: none; }
+  body { position: relative; -webkit-user-select: none; user-select: none; }
+  canvas { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); display: block; }
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<script>
+(() => {
+'use strict';
+// ---------- 设计坐标：9:16，1080 × 1920 ----------
+const W = 1080, H = 1920, HZ = 1180;          // HZ = 湖面水平线
+const FX = 520;                                // 瀑布中心 x
+const LIP = 640;                               // 瀑布顶端（崖口）y
+const params = new URLSearchParams(location.search);
+const CAPTURE = params.has('capture');
+
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+let S = 1;                                     // 设备像素 / 设计像素
+
+// ---------- 随机与噪声 ----------
+function mulberry32(a) { return function () { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+let rand = mulberry32(20261120);
+const R = (a, b) => a + (b - a) * rand();
+const gauss = () => (rand() + rand() + rand() - 1.5) / 1.5;
+function makeNoise(seed) {
+  const r = mulberry32(seed), p = new Float32Array(1024);
+  for (let i = 0; i < 1024; i++) p[i] = r();
+  return x => { const i = Math.floor(x), f = x - i, u = f * f * (3 - 2 * f); const a = p[i & 1023], b = p[(i + 1) & 1023]; return a + (b - a) * u; };
+}
+function fbm(n, x, oct = 5) { let s = 0, a = 0.5, f = 1, norm = 0; for (let i = 0; i < oct; i++) { s += a * n(x * f + i * 17.3); norm += a; a *= 0.5; f *= 2.03; } return s / norm; }
+const ss = (e0, e1, x) => { const t = Math.min(1, Math.max(0, (x - e0) / (e1 - e0))); return t * t * (3 - 2 * t); };
+
+function layer(w, h) {
+  const c = document.createElement('canvas');
+  c.width = Math.ceil(w * S); c.height = Math.ceil(h * S);
+  const x = c.getContext('2d'); x.setTransform(S, 0, 0, S, 0, 0);
+  return { c, x, w, h };
+}
+
+// ---------- 地形轮廓 ----------
+const nFar = makeNoise(11), nMid = makeNoise(23), nCliff = makeNoise(37), nShore = makeNoise(41);
+const farY = x => 720 - (fbm(nFar, x * 0.0042 + 2.1) - 0.28) * 640;
+const midY = x => 820 - (fbm(nMid, x * 0.0055 + 7.7) - 0.3) * 520;
+const cliffY = x => {
+  const d = Math.abs(x - FX);
+  return LIP - 300 * ss(55, 500, d) + (fbm(nCliff, x * 0.011) - 0.5) * 120 * ss(30, 240, d);
+};
+const fallL = y => { const k = (y - LIP) / (HZ - LIP); return FX - 48 - 28 * Math.pow(k, 1.3) + Math.sin(y * 0.05) * 1.2; };
+const fallR = y => { const k = (y - LIP) / (HZ - LIP); return FX + 48 + 28 * Math.pow(k, 1.3) + Math.sin(y * 0.043 + 1) * 1.2; };
+
+// ---------- 松树 ----------
+function pine(x, bx, by, h, col, lit) {
+  x.fillStyle = col;
+  x.beginPath(); x.moveTo(bx - h * 0.02, by); x.lineTo(bx - h * 0.004, by - h); x.lineTo(bx + h * 0.004, by - h); x.lineTo(bx + h * 0.02, by); x.fill();
+  const tiers = Math.max(5, Math.round(h / 10));
+  for (let i = 0; i < tiers; i++) {
+    const u = i / tiers;
+    const yb = by - h * 0.15 - u * h * 0.83;
+    const env = h * 0.3 * Math.pow(1 - u, 0.92) + h * 0.03;
+    for (const side of [-1, 1]) {
+      if (u < 0.65 && rand() < 0.12) continue;
+      const len = env * R(0.6, 1.12), droop = len * R(0.12, 0.38);
+      const th = (h * 0.83 / tiers) * R(1.1, 1.8);
+      const teeth = Math.max(3, Math.min(9, Math.round(len / (h * 0.035))));
+      x.beginPath(); x.moveTo(bx, yb - th);
+      x.quadraticCurveTo(bx + side * len * 0.45, yb - th * 0.75, bx + side * len, yb + droop);
+      for (let k = 1; k <= teeth; k++) {
+        const v = 1 - k / teeth;
+        x.lineTo(bx + side * len * (v + 0.5 / teeth), yb + droop * v * v + th * (k % 2 ? 0.28 : 0.02));
+      }
+      x.lineTo(bx, yb + th * 0.12); x.closePath(); x.fill();
+      if (lit && side * (SUN.x - bx) > 0) {
+        x.strokeStyle = lit; x.lineWidth = Math.max(0.8, h * 0.005);
+        x.beginPath(); x.moveTo(bx, yb - th); x.quadraticCurveTo(bx + side * len * 0.45, yb - th * 0.75, bx + side * len, yb + droop); x.stroke();
+      }
+    }
+  }
+}
+
+// ---------- 静态图层 ----------
+let L = {};
+const SUN = { x: 600, y: 470 };
+
+function buildLayers() {
+  rand = mulberry32(20261120);
+  L = {};
+
+  // 天空
+  L.sky = layer(W, HZ);
+  { const x = L.sky.x;
+    const g = x.createLinearGradient(0, 0, 0, HZ);
+    g.addColorStop(0, '#36648f'); g.addColorStop(0.3, '#6f9cc0'); g.addColorStop(0.5, '#b4cfdc');
+    g.addColorStop(0.66, '#ecdcc4'); g.addColorStop(1, '#f7e7cf');
+    x.fillStyle = g; x.fillRect(0, 0, W, HZ);
+    let r = x.createRadialGradient(SUN.x, SUN.y, 0, SUN.x, SUN.y, 640);
+    r.addColorStop(0, 'rgba(255,246,222,0.95)'); r.addColorStop(0.12, 'rgba(255,232,190,0.55)');
+    r.addColorStop(0.4, 'rgba(255,214,170,0.18)'); r.addColorStop(1, 'rgba(255,210,170,0)');
+    x.fillStyle = r; x.fillRect(0, 0, W, HZ);
+    r = x.createRadialGradient(SUN.x, SUN.y, 0, SUN.x, SUN.y, 46);
+    r.addColorStop(0, 'rgba(255,255,250,1)'); r.addColorStop(0.7, 'rgba(255,250,235,0.9)'); r.addColorStop(1, 'rgba(255,245,225,0)');
+    x.fillStyle = r; x.beginPath(); x.arc(SUN.x, SUN.y, 46, 0, Math.PI * 2); x.fill();
+  }
+
+  // 远山
+  L.far = layer(W, HZ);
+  { const x = L.far.x;
+    x.beginPath(); x.moveTo(0, HZ);
+    for (let i = 0; i <= W; i += 3) x.lineTo(i, farY(i));
+    x.lineTo(W, HZ); x.closePath();
+    const g = x.createLinearGradient(0, 440, 0, HZ);
+    g.addColorStop(0, '#8292b6'); g.addColorStop(0.35, '#a3b0c8'); g.addColorStop(0.7, '#d1d5dd'); g.addColorStop(1, '#e8e2da');
+    x.fillStyle = g; x.fill();
+    // 向光面
+    x.save(); x.clip();
+    for (let i = 0; i < 260; i++) {
+      const px = R(0, W), top = farY(px), py = top + R(0, 120);
+      x.strokeStyle = `rgba(255,238,215,${R(0.03, 0.07)})`; x.lineWidth = R(3, 9);
+      x.beginPath(); x.moveTo(px, py); x.lineTo(px + R(6, 20), py + R(14, 40)); x.stroke();
+    }
+    x.restore();
+  }
+
+  // 中景山
+  L.mid = layer(W, HZ);
+  { const x = L.mid.x;
+    x.beginPath(); x.moveTo(0, HZ);
+    for (let i = 0; i <= W; i += 3) x.lineTo(i, midY(i));
+    x.lineTo(W, HZ); x.closePath();
+    const g = x.createLinearGradient(0, 560, 0, HZ);
+    g.addColorStop(0, '#4b6d77'); g.addColorStop(0.4, '#6f8f96'); g.addColorStop(0.8, '#b9c8c8'); g.addColorStop(1, '#d9ddd8');
+    x.fillStyle = g; x.fill();
+    x.save(); x.clip();
+    for (let i = 0; i < 500; i++) {
+      const px = R(0, W), top = midY(px), py = top + R(0, 200);
+      const dark = rand() < 0.5;
+      x.strokeStyle = dark ? `rgba(30,55,60,${R(0.06, 0.16)})` : `rgba(235,225,205,${R(0.05, 0.12)})`;
+      x.lineWidth = R(1.5, 5);
+      x.beginPath(); x.moveTo(px, py); x.lineTo(px + R(-30, 30), py + R(30, 110)); x.stroke();
+    }
+    for (let i = 0; i < W; i += 5) { // 山脊小树
+      if (rand() < 0.55) pine(x, i + R(-2, 2), midY(i) + 4, R(8, 16), 'rgba(40,70,72,0.8)');
+    }
+    x.restore();
+  }
+
+  // 主崖（瀑布所在峡口）
+  L.cliff = layer(W, HZ);
+  { const x = L.cliff.x;
+    const path = () => { x.beginPath(); x.moveTo(0, HZ); x.lineTo(0, cliffY(0)); for (let i = 0; i <= W; i += 2) x.lineTo(i, cliffY(i)); x.lineTo(W, HZ); x.closePath(); };
+    path();
+    const g = x.createLinearGradient(0, 300, 0, HZ);
+    g.addColorStop(0, '#34503f'); g.addColorStop(0.45, '#223a31'); g.addColorStop(1, '#3a5352');
+    x.fillStyle = g; x.fill();
+    x.save(); path(); x.clip();
+    // 横向光照：峡口内壁受光
+    let lg = x.createLinearGradient(0, 0, W, 0);
+    lg.addColorStop(0, 'rgba(0,8,8,0.35)'); lg.addColorStop(0.36, 'rgba(0,0,0,0)'); lg.addColorStop(0.48, 'rgba(0,0,0,0)');
+    lg.addColorStop(0.56, 'rgba(0,0,0,0)'); lg.addColorStop(1, 'rgba(0,8,8,0.45)');
+    x.fillStyle = lg; x.fillRect(0, 0, W, HZ);
+    // 岩面块体
+    for (let i = 0; i < 700; i++) {
+      const px = R(0, W), top = cliffY(px), py = R(top + 10, HZ);
+      const inner = 1 - Math.min(1, Math.abs(px - FX) / 520);
+      const sz = R(8, 34), sk = R(-0.6, 0.6);
+      const l = (R(55, 95) + inner * 50) | 0;
+      x.fillStyle = `rgba(${l - 10},${l + 6},${l - 4},${R(0.05, 0.14)})`;
+      x.beginPath(); x.moveTo(px, py); x.lineTo(px + sz, py + sz * sk); x.lineTo(px + sz * 0.9, py + sz * (sk + 1.4)); x.lineTo(px - sz * 0.1, py + sz * 1.3); x.closePath(); x.fill();
+      x.strokeStyle = `rgba(230,225,200,${(0.04 + inner * 0.08).toFixed(3)})`; x.lineWidth = 1;
+      x.beginPath(); x.moveTo(px, py); x.lineTo(px + sz, py + sz * sk); x.stroke();
+    }
+    // 少量裂隙
+    for (let i = 0; i < 260; i++) {
+      const px = R(0, W), py = R(cliffY(px) + 30, HZ - 20);
+      x.strokeStyle = `rgba(6,16,16,${R(0.2, 0.45)})`; x.lineWidth = R(1, 2.5);
+      x.beginPath(); x.moveTo(px, py); x.lineTo(px + R(-5, 5), py + R(10, 34)); x.stroke();
+    }
+    // 崖壁植被（簇状灌木/树冠）
+    const nV = makeNoise(53);
+    for (let i = 0; i < 2600; i++) {
+      const px = R(0, W), top = cliffY(px);
+      const dF = Math.abs(px - FX); if (dF < 64) continue;
+      const py = top + Math.pow(rand(), 1.5) * (HZ - top);
+      const depth = (py - top) / (HZ - top);
+      const ledge = nV(px * 0.018 + py * 0.03);
+      if (rand() > (1 - depth * 0.85) * (0.2 + ledge)) continue;
+      const inner = 1 - Math.min(1, dF / 520);
+      const hs = px < FX ? 1 : -1;
+      const base = R(1.8, 4.6) * (1.2 - depth * 0.5);
+      const n = 3 + (rand() * 5 | 0);
+      const g0 = R(30, 52) + inner * 18;
+      // 阴影
+      x.fillStyle = 'rgba(5,16,12,0.35)';
+      x.beginPath(); x.ellipse(px - hs * base, py + base * 1.4, base * 2.6, base * 1.2, 0, 0, Math.PI * 2); x.fill();
+      for (let k = 0; k < n; k++) {
+        const ox = R(-1.6, 1.6) * base, oy = R(-1.2, 1) * base, rr = base * R(0.8, 1.5);
+        const gg = g0 * R(0.85, 1.15);
+        x.fillStyle = `rgb(${(gg * R(0.4, 0.6)) | 0},${gg | 0},${(gg * R(0.55, 0.7)) | 0})`;
+        x.beginPath(); x.arc(px + ox, py + oy, rr, 0, Math.PI * 2); x.fill();
+      }
+      x.fillStyle = `rgba(${(120 + inner * 80) | 0},${(150 + inner * 50) | 0},${(70 + inner * 30) | 0},${(0.12 + inner * 0.3).toFixed(3)})`;
+      for (let k = 0; k < 2; k++) {
+        x.beginPath(); x.arc(px + hs * base * R(0.2, 0.9), py - base * R(0.4, 1), base * R(0.5, 0.9), 0, Math.PI * 2); x.fill();
+      }
+    }
+    // 逆光边缘：峡口内壁被阳光照亮
+    x.globalCompositeOperation = 'screen';
+    let r = x.createRadialGradient(FX, LIP, 0, FX, LIP, 460);
+    r.addColorStop(0, 'rgba(255,215,160,0.32)'); r.addColorStop(1, 'rgba(255,215,160,0)');
+    x.fillStyle = r; x.fillRect(0, 0, W, HZ);
+    x.globalCompositeOperation = 'source-over';
+    // 瀑布后湿岩
+    r = x.createLinearGradient(FX - 110, 0, FX + 110, 0);
+    r.addColorStop(0, 'rgba(5,14,14,0)'); r.addColorStop(0.5, 'rgba(5,14,14,0.55)'); r.addColorStop(1, 'rgba(5,14,14,0)');
+    x.fillStyle = r; x.fillRect(FX - 110, LIP, 220, HZ - LIP);
+    // 底部水汽
+    r = x.createLinearGradient(0, 880, 0, HZ);
+    r.addColorStop(0, 'rgba(205,220,220,0)'); r.addColorStop(1, 'rgba(205,222,222,0.6)');
+    x.fillStyle = r; x.fillRect(0, 880, W, HZ - 880);
+    x.restore();
+    // 崖顶松树
+    for (let i = 0; i <= W; i += 7) {
+      if (Math.abs(i - FX) < 75 || rand() > 0.72) continue;
+      pine(x, i + R(-3, 3), cliffY(i) + 5, R(14, 38), '#172b28', 'rgba(255,220,170,0.25)');
+    }
+    // 崖口高光
+    x.strokeStyle = 'rgba(255,230,190,0.35)'; x.lineWidth = 2;
+    x.beginPath(); for (let i = FX - 140; i <= FX + 140; i += 2) { i === FX - 140 ? x.moveTo(i, cliffY(i)) : x.lineTo(i, cliffY(i)); } x.stroke();
+  }
+
+  // 远岸树线（含瀑布脚下的岩石）
+  L.shore = layer(W, HZ);
+  { const x = L.shore.x;
+    x.fillStyle = '#183330';
+    x.beginPath(); x.moveTo(0, HZ);
+    for (let i = 0; i <= W; i += 4) x.lineTo(i, HZ - 6 - nShore(i * 0.03) * 8 * ss(80, 130, Math.abs(i - FX)));
+    x.lineTo(W, HZ); x.closePath(); x.fill();
+    for (let i = 0; i <= W; i += 5) {
+      if (Math.abs(i - FX) < 100) continue;
+      const tall = 1 - ss(0, 420, Math.abs(i - FX)) * 0.2;
+      pine(x, i + R(-3, 3), HZ + 1, R(16, 46) * tall, rand() < 0.5 ? '#14302c' : '#1b3a35');
+    }
+    for (let i = 0; i < 16; i++) { // 潭边岩石
+      const px = FX + gauss() * 120, rw = R(14, 34), rh = R(8, 16);
+      const g = x.createLinearGradient(0, HZ - rh * 2, 0, HZ);
+      g.addColorStop(0, '#5c6f6c'); g.addColorStop(1, '#243634');
+      x.fillStyle = g; x.beginPath(); x.ellipse(px, HZ - 2, rw, rh, 0, Math.PI, 0); x.fill();
+    }
+  }
+
+  // 前景：左右两岸礁石与古松
+  const FY = 1060;
+  L.fg = layer(W, H - FY);
+  { const x = L.fg.x; x.translate(0, -FY);
+    const rock = (pts, c1, c2) => {
+      x.beginPath(); x.moveTo(pts[0][0], pts[0][1]);
+      for (let i = 1; i < pts.length; i++) { const p = pts[i], q = pts[i - 1]; x.quadraticCurveTo(q[0], q[1], (p[0] + q[0]) / 2, (p[1] + q[1]) / 2); }
+      x.lineTo(pts[pts.length - 1][0], pts[pts.length - 1][1]); x.closePath();
+      const g = x.createLinearGradient(0, 1600, 0, H); g.addColorStop(0, c1); g.addColorStop(1, c2);
+      x.fillStyle = g; x.fill();
+    };
+    rock([[0, 1630], [90, 1660], [190, 1700], [280, 1760], [360, 1830], [430, 1880], [470, 1920], [0, 1920], [0, 1630]], '#1d322f', '#08120f');
+    rock([[1080, 1700], [1010, 1730], [930, 1790], [870, 1850], [830, 1920], [1080, 1920], [1080, 1700]], '#1b302d', '#07110f');
+    // 岩面高光
+    for (let i = 0; i < 90; i++) {
+      const left = rand() < 0.62;
+      const px = left ? R(0, 380) : R(860, 1080);
+      const py = left ? R(1680 + px * 0.5, 1920) : R(1760 + (1080 - px) * 0.4, 1920);
+      x.strokeStyle = `rgba(160,190,170,${R(0.05, 0.16)})`; x.lineWidth = R(1, 3);
+      x.beginPath(); x.moveTo(px, py); x.lineTo(px + R(10, 40), py + R(-4, 6)); x.stroke();
+    }
+    // 水边亮线
+    x.strokeStyle = 'rgba(220,240,235,0.25)'; x.lineWidth = 2;
+    x.beginPath(); x.moveTo(0, 1632); x.quadraticCurveTo(200, 1690, 330, 1800); x.quadraticCurveTo(420, 1870, 470, 1920); x.stroke();
+    x.beginPath(); x.moveTo(1080, 1702); x.quadraticCurveTo(940, 1770, 832, 1920); x.stroke();
+    // 古松
+    const pc = '#0b1c1a', pl = 'rgba(255,215,165,0.22)';
+    pine(x, 46, 1700, 600, pc, pl);
+    pine(x, 150, 1745, 440, '#0d201e', pl);
+    pine(x, 245, 1800, 300, '#10241f', pl);
+    pine(x, 320, 1850, 170, '#10241f');
+    pine(x, 1040, 1770, 480, pc, pl);
+    pine(x, 960, 1830, 280, '#0d201e', pl);
+    pine(x, 890, 1880, 150, '#10241f');
+    // 草丛
+    for (let i = 0; i < 260; i++) {
+      const left = rand() < 0.6;
+      const px = left ? R(0, 440) : R(840, 1080);
+      const base = left ? 1640 + Math.pow(px / 470, 1.4) * 280 : 1700 + Math.pow((1080 - px) / 250, 1.2) * 220;
+      const hh = R(10, 34);
+      x.strokeStyle = `rgba(${R(20, 45) | 0},${R(50, 80) | 0},${R(40, 55) | 0},0.9)`; x.lineWidth = R(1, 2.2);
+      x.beginPath(); x.moveTo(px, base + 4); x.quadraticCurveTo(px + R(-4, 4), base - hh * 0.5, px + R(-10, 10), base - hh); x.stroke();
+    }
+  }
+  L.FY = FY;
+
+  // 瀑布水纹贴图（可纵向无缝平铺）
+  L.wtex = layer(200, 700);
+  { const x = L.wtex.x;
+    for (let i = 0; i < 420; i++) {
+      const px = R(0, 200), len = R(60, 380), y0 = R(0, 700), lw = R(0.8, 3.8), a = R(0.12, 0.6);
+      const drift = R(-2, 2);
+      for (const off of [-700, 0, 700]) {
+        const g = x.createLinearGradient(0, y0 + off, 0, y0 + off + len);
+        g.addColorStop(0, 'rgba(255,255,255,0)'); g.addColorStop(0.5, `rgba(242,251,255,${a})`); g.addColorStop(1, 'rgba(255,255,255,0)');
+        x.strokeStyle = g; x.lineWidth = lw;
+        x.beginPath(); x.moveTo(px, y0 + off); x.lineTo(px + drift, y0 + off + len); x.stroke();
+      }
+    }
+  }
+
+  // 柔光粒子（水雾）
+  L.puff = layer(128, 128);
+  { const x = L.puff.x; const r = x.createRadialGradient(64, 64, 0, 64, 64, 64);
+    r.addColorStop(0, 'rgba(255,255,255,0.9)'); r.addColorStop(0.45, 'rgba(250,253,255,0.4)'); r.addColorStop(1, 'rgba(255,255,255,0)');
+    x.fillStyle = r; x.fillRect(0, 0, 128, 128); }
+
+  // 云朵贴图
+  L.clouds = [];
+  for (let k = 0; k < 4; k++) {
+    const cw = 560, ch = 220, c = layer(cw, ch), x = c.x;
+    for (let i = 0; i < 55; i++) {
+      const cx = R(70, cw - 70), centr = 1 - Math.abs(cx - cw / 2) / (cw / 2);
+      const rr = R(28, 60) + centr * R(20, 50);
+      const cy = ch * 0.68 - centr * R(10, 60) - R(0, 20);
+      const g = x.createRadialGradient(cx, cy, 0, cx, cy, rr);
+      g.addColorStop(0, `rgba(255,255,255,${R(0.35, 0.6)})`); g.addColorStop(1, 'rgba(255,255,255,0)');
+      x.fillStyle = g; x.beginPath(); x.arc(cx, cy, rr, 0, Math.PI * 2); x.fill();
+    }
+    x.globalCompositeOperation = 'source-atop';
+    const g = x.createLinearGradient(0, 0, 0, ch);
+    g.addColorStop(0, 'rgba(255,248,236,0.7)'); g.addColorStop(0.55, 'rgba(250,236,220,0.5)'); g.addColorStop(1, 'rgba(160,178,200,0.75)');
+    x.fillStyle = g; x.fillRect(0, 0, cw, ch);
+    L.clouds.push(c);
+  }
+  // 雾带贴图
+  L.mists = [];
+  for (let k = 0; k < 3; k++) {
+    const mw = 1000, mh = 240, c = layer(mw, mh), x = c.x;
+    for (let i = 0; i < 70; i++) {
+      const cx = R(80, mw - 80), cy = mh / 2 + gauss() * 40, rr = R(50, 120);
+      const g = x.createRadialGradient(cx, cy, 0, cx, cy, rr);
+      g.addColorStop(0, `rgba(240,244,244,${R(0.1, 0.24)})`); g.addColorStop(1, 'rgba(240,244,244,0)');
+      x.fillStyle = g; x.beginPath(); x.ellipse(cx, cy, rr * 1.8, rr, 0, 0, Math.PI * 2); x.fill();
+    }
+    L.mists.push(c);
+  }
+
+  L.upper = layer(W, HZ);
+}
+
+// ---------- 动态元素 ----------
+let T = 0;
+const clouds = [], mistA = [], mistB = [], mistC = [], lakeMist = [];
+const spray = [], ripples = [], glints = [], rays = [];
+let flocks = [];
+function initDynamic() {
+  rand = mulberry32(777);
+  const mk = (arr, n, yMin, yMax, sMin, sMax, aMin, aMax, vMin, vMax, sprites, sy = 1) => {
+    for (let i = 0; i < n; i++) {
+      const sc = R(sMin, sMax);
+      arr.push({ sp: sprites[i % sprites.length], x: R(-300, W + 100), y: R(yMin, yMax), sc, sy, a: R(aMin, aMax), v: R(vMin, vMax) * (rand() < 0.3 ? -1 : 1) });
+    }
+  };
+  mk(clouds, 6, 90, 420, 0.7, 1.35, 0.7, 0.95, 6, 16, L.clouds);
+  mk(mistA, 3, 640, 720, 1.0, 1.5, 0.6, 0.8, 5, 10, L.mists);
+  mk(mistB, 3, 720, 840, 1.0, 1.5, 0.55, 0.75, 7, 13, L.mists);
+  mk(mistC, 4, 780, 1060, 1.1, 1.6, 0.35, 0.55, 10, 20, L.mists);
+  mk(lakeMist, 3, HZ - 60, HZ + 10, 1.2, 1.6, 0.35, 0.5, 8, 14, L.mists, 0.55);
+  for (let i = 0; i < 460; i++) {
+    const d = Math.pow(rand(), 1.5), y = HZ + 6 + d * (H - HZ - 6);
+    const central = rand() < 0.45;
+    glints.push({ x: central ? FX + gauss() * 200 : R(-60, W + 60), y, len: R(5, 16) * (0.4 + d * 2.6), ph: R(0, 6.28), sp: R(0.8, 2.4), a: R(0.25, 0.85) * (central ? 1 : 0.7), vx: R(3, 12), w: 0.8 + d * 2.2 });
+  }
+  for (let i = 0; i < 7; i++) rays.push({ ang: Math.PI * 0.5 + (i - 3) * 0.32 + R(-0.08, 0.08), w: R(0.04, 0.09), ph: R(0, 6.28), len: R(700, 1000) });
+  for (let i = 0; i < 60; i++) stepSpray(0.05, true);
+  for (let r = 10; r < 420; r += 45) ripples.push({ r, a: 0.45 * (1 - r / 420) });
+  flocks = [newFlock(1, 520), newFlock(0.45, 380)];
+}
+function newFlock(scale, startOffset = 0) {
+  const dir = rand() < 0.6 ? 1 : -1;
+  const n = scale > 0.8 ? Math.floor(R(5, 8)) : Math.floor(R(3, 5));
+  const birds = [];
+  for (let i = 0; i < n; i++) {
+    const side = i % 2 ? 1 : -1, rank = Math.ceil(i / 2);
+    birds.push({ dx: -dir * rank * R(40, 58), dy: side * rank * R(16, 28) + R(-6, 6), s: R(16, 23), ph: R(0, 6.28), f: R(2.4, 3.2), bob: R(0, 6.28) });
+  }
+  return { x: (dir > 0 ? -160 : W + 160) + dir * startOffset, y: scale > 0.8 ? R(170, 340) : R(430, 520), dir, v: R(50, 80) * scale + 15, birds, sc: scale, wait: 0 };
+}
+
+function stepSpray(dt, init) {
+  const n = init ? 1 : Math.round(dt * 46 + rand() * 0.5);
+  for (let i = 0; i < n; i++) {
+    const high = rand() < 0.2;
+    spray.push({ x: FX + gauss() * 70, y: HZ + R(-22, 4), vx: R(-22, 22), vy: high ? R(-85, -50) : R(-45, -10), r: R(16, 46), life: init ? R(0, 3) : 0, max: R(2.5, 5) });
+  }
+  for (let i = spray.length - 1; i >= 0; i--) {
+    const p = spray[i]; p.life += dt; p.x += p.vx * dt; p.y += p.vy * dt; p.vy *= (1 - dt * 0.25); p.r += dt * 16;
+    if (p.life > p.max) spray.splice(i, 1);
+  }
+}
+
+let rippleTimer = 0;
+function update(dt) {
+  T += dt;
+  const drift = arr => { for (const m of arr) { const w = m.sp.w * m.sc; m.x += m.v * dt; if (m.v > 0 && m.x > W + 40) m.x = -w - 40; if (m.v < 0 && m.x < -w - 40) m.x = W + 40; } };
+  drift(clouds); drift(mistA); drift(mistB); drift(mistC); drift(lakeMist);
+  stepSpray(dt);
+  rippleTimer += dt;
+  if (rippleTimer > 0.55) { rippleTimer = 0; ripples.push({ r: 12, a: 0.5 }); }
+  for (let i = ripples.length - 1; i >= 0; i--) { const r = ripples[i]; r.r += dt * 42; r.a = 0.5 * (1 - r.r / 420); if (r.r > 420) ripples.splice(i, 1); }
+  for (let i = 0; i < flocks.length; i++) {
+    const f = flocks[i];
+    if (f.wait > 0) { f.wait -= dt; if (f.wait <= 0) flocks[i] = newFlock(f.sc); continue; }
+    f.x += f.dir * f.v * dt; f.y += Math.sin(T * 0.4 + i) * dt * 6;
+    if ((f.dir > 0 && f.x > W + 320) || (f.dir < 0 && f.x < -320)) f.wait = R(1.5, 5);
+  }
+}
+
+// ---------- 绘制 ----------
+function drawSprites(x, arr) {
+  for (const m of arr) { x.globalAlpha = m.a; x.drawImage(m.sp.c, m.x, m.y - m.sp.h * m.sc * m.sy / 2, m.sp.w * m.sc, m.sp.h * m.sc * m.sy); }
+  x.globalAlpha = 1;
+}
+function fallPath(x) {
+  x.beginPath(); x.moveTo(fallL(LIP), LIP - 2);
+  for (let y = LIP; y <= HZ; y += 10) x.lineTo(fallL(y), y);
+  x.lineTo(fallR(HZ), HZ);
+  for (let y = HZ; y >= LIP; y -= 10) x.lineTo(fallR(y), y);
+  x.closePath();
+}
+function drawWaterfall(x) {
+  x.save(); fallPath(x); x.clip();
+  let g = x.createLinearGradient(FX - 80, 0, FX + 80, 0);
+  g.addColorStop(0, 'rgba(190,220,225,0.3)'); g.addColorStop(0.25, 'rgba(220,238,242,0.72)');
+  g.addColorStop(0.5, 'rgba(236,246,248,0.85)'); g.addColorStop(0.75, 'rgba(215,235,240,0.72)'); g.addColorStop(1, 'rgba(190,220,225,0.3)');
+  x.fillStyle = g; x.fillRect(FX - 90, LIP - 4, 180, HZ - LIP + 6);
+  const layers = [{ sp: 360, a: 0.9, ox: 0 }, { sp: 520, a: 0.75, ox: 47 }, { sp: 700, a: 0.55, ox: 93 }];
+  for (const ly of layers) {
+    const off = (T * ly.sp + ly.ox * 7) % 700;
+    x.globalAlpha = ly.a;
+    for (let yy = LIP - 700 + off; yy < HZ; yy += 700) {
+      x.drawImage(L.wtex.c, FX - 100 + (ly.ox % 20) - 10, yy, 200, 700);
+    }
+  }
+  x.globalAlpha = 1;
+  // 中下部变得更白、更蓬松
+  g = x.createLinearGradient(0, LIP, 0, HZ);
+  g.addColorStop(0, 'rgba(255,255,255,0)'); g.addColorStop(0.6, 'rgba(250,253,255,0.12)'); g.addColorStop(1, 'rgba(250,253,255,0.55)');
+  x.fillStyle = g; x.fillRect(FX - 90, LIP, 180, HZ - LIP);
+  x.restore();
+  // 崖口水舌
+  x.strokeStyle = 'rgba(255,255,255,0.75)'; x.lineWidth = 3.5;
+  x.beginPath(); x.moveTo(fallL(LIP) + 2, LIP); x.quadraticCurveTo(FX, LIP - 7, fallR(LIP) - 2, LIP); x.stroke();
+  // 两侧细流
+  x.strokeStyle = 'rgba(235,248,250,0.35)'; x.lineWidth = 1.5;
+  for (const sx of [-1, 1]) {
+    x.beginPath(); const x0 = FX + sx * 70;
+    x.moveTo(x0, cliffY(x0) + 4);
+    for (let y = cliffY(x0) + 4; y < HZ; y += 20) x.lineTo(x0 + sx * (y - LIP) * 0.03 + Math.sin(y * 0.08 + T * 3) * 1.5, y);
+    x.stroke();
+  }
+}
+function drawRays(x) {
+  x.save(); x.globalCompositeOperation = 'screen';
+  for (const r of rays) {
+    const a = 0.05 * (0.55 + 0.45 * Math.sin(T * 0.35 + r.ph));
+    const ex1 = SUN.x + Math.cos(r.ang - r.w) * r.len, ey1 = SUN.y + Math.sin(r.ang - r.w) * r.len;
+    const ex2 = SUN.x + Math.cos(r.ang + r.w) * r.len, ey2 = SUN.y + Math.sin(r.ang + r.w) * r.len;
+    const g = x.createRadialGradient(SUN.x, SUN.y, 0, SUN.x, SUN.y, r.len);
+    g.addColorStop(0, `rgba(255,236,200,${a * 2})`); g.addColorStop(1, 'rgba(255,236,200,0)');
+    x.fillStyle = g; x.beginPath(); x.moveTo(SUN.x, SUN.y); x.lineTo(ex1, ey1); x.lineTo(ex2, ey2); x.closePath(); x.fill();
+  }
+  x.restore();
+}
+function drawBirds(x) {
+  x.lineCap = 'round'; x.lineJoin = 'round';
+  for (const f of flocks) {
+    if (f.wait > 0) continue;
+    const sc = f.sc;
+    x.strokeStyle = sc > 0.8 ? 'rgba(22,34,40,0.9)' : 'rgba(60,75,88,0.7)';
+    x.lineWidth = 2.3 * sc + 0.4;
+    x.beginPath();
+    for (const b of f.birds) {
+      const s = b.s * sc;
+      const amp = 0.65 + 0.35 * Math.sin(T * 0.6 + b.ph);
+      const w = Math.sin(T * b.f * Math.PI * 2 + b.ph) * amp;
+      const bx = f.x + b.dx * sc, by = f.y + b.dy * sc + Math.sin(T * 1.2 + b.bob) * 4 * sc;
+      x.moveTo(bx - s, by - w * s * 0.55);
+      x.quadraticCurveTo(bx - s * 0.45, by - s * 0.25 - w * s * 0.18, bx, by);
+      x.quadraticCurveTo(bx + s * 0.45, by - s * 0.25 - w * s * 0.18, bx + s, by - w * s * 0.55);
+    }
+    x.stroke();
+  }
+}
+
+function render() {
+  // ---- 水面以上 ----
+  const u = L.upper.x;
+  u.drawImage(L.sky.c, 0, 0, W, HZ);
+  drawSprites(u, clouds);
+  u.drawImage(L.far.c, 0, 0, W, HZ);
+  drawSprites(u, mistA);
+  drawRays(u);
+  u.drawImage(L.mid.c, 0, 0, W, HZ);
+  drawSprites(u, mistB);
+  u.drawImage(L.cliff.c, 0, 0, W, HZ);
+  drawWaterfall(u);
+  drawSprites(u, mistC);
+  drawBirds(u);
+  u.drawImage(L.shore.c, 0, 0, W, HZ);
+
+  ctx.setTransform(S, 0, 0, S, 0, 0);
+  ctx.drawImage(L.upper.c, 0, 0, W, HZ);
+
+  // ---- 湖面倒影（逐行扰动） ----
+  const rowH = 2, src = L.upper.c;
+  for (let y = HZ; y < H; y += rowH) {
+    const d = y - HZ, k = d / (H - HZ);
+    let sy = HZ - 1 - d * 0.92; if (sy < 0) sy = 0;
+    const amp = 0.5 + k * 9;
+    const dx = Math.sin(d * 0.11 - T * 2.1) * amp * 0.55 + Math.sin(d * 0.037 + T * 1.15) * amp + Math.sin(d * 0.012 - T * 0.55) * amp * 0.7;
+    ctx.drawImage(src, 0, sy * S, src.width, rowH * 0.92 * S, dx - 14, y, W + 28, rowH + 0.5);
+  }
+  // 碧色水体
+  let g = ctx.createLinearGradient(0, HZ, 0, H);
+  g.addColorStop(0, 'rgba(170,210,205,0.12)'); g.addColorStop(0.12, 'rgba(36,112,108,0.32)');
+  g.addColorStop(0.55, 'rgba(14,74,76,0.58)'); g.addColorStop(1, 'rgba(5,36,42,0.82)');
+  ctx.fillStyle = g; ctx.fillRect(0, HZ, W, H - HZ);
+  // 波光
+  ctx.save(); ctx.globalCompositeOperation = 'screen'; ctx.lineCap = 'round';
+  for (const p of glints) {
+    const s = Math.sin(T * p.sp + p.ph); if (s <= 0) continue;
+    const a = p.a * s * s * s * s; if (a < 0.02) continue;
+    let px = (p.x + T * p.vx) % (W + 120); if (px < -60) px += W + 120; px -= 60;
+    ctx.strokeStyle = `rgba(255,246,226,${a.toFixed(3)})`; ctx.lineWidth = p.w;
+    ctx.beginPath(); ctx.moveTo(px - p.len / 2, p.y); ctx.lineTo(px + p.len / 2, p.y); ctx.stroke();
+  }
+  // 向前推进的细浪
+  for (let i = 0; i < 26; i++) {
+    const u2 = ((i / 26) + T * 0.018) % 1, y = HZ + (H - HZ) * Math.pow(u2, 1.7);
+    ctx.strokeStyle = `rgba(210,240,235,${(0.03 + u2 * 0.05).toFixed(3)})`; ctx.lineWidth = 1 + u2 * 2;
+    ctx.beginPath();
+    for (let xx = 0; xx <= W; xx += 30) { const yy = y + Math.sin(xx * 0.012 + T * 0.9 + i) * (2 + u2 * 8); xx ? ctx.lineTo(xx, yy) : ctx.moveTo(xx, yy); }
+    ctx.stroke();
+  }
+  ctx.restore();
+  // 地平线亮边
+  ctx.fillStyle = 'rgba(240,248,245,0.18)'; ctx.fillRect(0, HZ, W, 1.5);
+  // 潭面涟漪
+  ctx.save(); ctx.beginPath(); ctx.rect(0, HZ + 1, W, H - HZ); ctx.clip();
+  ctx.lineWidth = 1.6;
+  for (const r of ripples) {
+    ctx.strokeStyle = `rgba(235,250,248,${Math.max(0, r.a).toFixed(3)})`;
+    ctx.beginPath(); ctx.ellipse(FX, HZ + 4, r.r * 1.2, r.r * 0.16, 0, 0, Math.PI); ctx.stroke();
+  }
+  ctx.restore();
+  // 跌水白沫
+  for (let i = 0; i < 18; i++) {
+    const a = 0.45 + 0.3 * Math.sin(T * 6 + i * 1.7);
+    const px = FX + Math.sin(i * 12.9898) * 75, py = HZ + Math.sin(i * 4.1) * 5;
+    ctx.globalAlpha = a; ctx.drawImage(L.puff.c, px - 30, py - 12, 60 + (i % 3) * 14, 24);
+  }
+  // 水雾
+  for (const p of spray) {
+    const a = 0.3 * Math.sin(Math.PI * p.life / p.max);
+    ctx.globalAlpha = Math.max(0, a); ctx.drawImage(L.puff.c, p.x - p.r, p.y - p.r, p.r * 2, p.r * 2);
+  }
+  ctx.globalAlpha = 1;
+  drawSprites(ctx, lakeMist);
+
+  // ---- 前景 ----
+  ctx.drawImage(L.fg.c, 0, L.FY, W, H - L.FY);
+  // 暗角
+  g = ctx.createRadialGradient(W / 2, H * 0.45, H * 0.25, W / 2, H * 0.5, H * 0.75);
+  g.addColorStop(0, 'rgba(0,10,14,0)'); g.addColorStop(1, 'rgba(0,10,14,0.45)');
+  ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+}
+
+// ---------- 尺寸适配：手机上铺满(cover)，宽屏上居中(contain) ----------
+function resize() {
+  const vw = innerWidth, vh = innerHeight;
+  let ch = vh, cw = vh * 9 / 16;
+  if (cw < vw && vw / vh <= 9 / 16 + 0.001) { cw = vw; ch = vw * 16 / 9; }
+  if (CAPTURE) { cw = W; ch = H; }
+  canvas.style.width = cw + 'px'; canvas.style.height = ch + 'px';
+  const dpr = CAPTURE ? 1 : Math.min(window.devicePixelRatio || 1, 2);
+  const px = Math.min(Math.round(cw * dpr), 1080);
+  S = px / W;
+  canvas.width = Math.round(W * S); canvas.height = Math.round(H * S);
+  buildLayers();
+}
+
+resize();
+initDynamic();
+
+if (CAPTURE) {
+  window.__step = (dt, n = 1) => { for (let i = 0; i < n; i++) update(dt); render(); };
+  window.__ready = true;
+  render();
+} else {
+  let last = performance.now(), rt;
+  addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(() => { resize(); relinkSprites(); }, 200); });
+  const loop = now => {
+    const dt = Math.min(0.05, (now - last) / 1000); last = now;
+    update(dt); render();
+    requestAnimationFrame(loop);
+  };
+  requestAnimationFrame(loop);
+  // 点按进入全屏
+  addEventListener('click', () => { const el = document.documentElement; if (!document.fullscreenElement && el.requestFullscreen) el.requestFullscreen().catch(() => {}); });
+}
+// 尺寸变化后，让雾/云实例指向重建后的贴图
+function relinkSprites() {
+  let ci = 0, mi = 0;
+  for (const m of clouds) m.sp = L.clouds[ci++ % L.clouds.length];
+  for (const arr of [mistA, mistB, mistC, lakeMist]) for (const m of arr) m.sp = L.mists[mi++ % L.mists.length];
+}
+})();
+</script>
+</body>
+</html>
