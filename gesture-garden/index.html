@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>花语 · 手势花园</title>
+  <meta name="description" content="用手势唤醒一座安静的花园：张开手掌花开，握拳花合。" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600&display=swap" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <!-- ========== 画布层：花园 ========== -->
+  <canvas id="garden" aria-label="花园动画"></canvas>
+  <div class="layer warmth" id="warmth"></div>
+  <div class="layer vignette"></div>
+
+  <!-- ========== HUD：状态 / 指标 ========== -->
+  <header class="hud ui-fade">
+    <div class="brand">花语<span>Gesture Garden</span></div>
+    <div class="status" id="status" data-state="idle">
+      <span class="status-dot"></span>
+      <span id="statusText">等待开始</span>
+    </div>
+    <div class="metrics" id="metrics">识别 -- ms · 响应 -- ms · -- fps</div>
+  </header>
+
+  <!-- ========== 控制按钮 ========== -->
+  <nav class="controls ui-fade" aria-label="控制">
+    <div class="volume">
+      <button id="btnMusic" class="icon-btn" title="音乐开关 (M)" aria-pressed="false">
+        <svg viewBox="0 0 24 24"><path d="M9 18V6l10-2v12" /><circle cx="6.5" cy="18" r="2.5" /><circle cx="16.5" cy="16" r="2.5" /></svg>
+      </button>
+      <input id="volume" type="range" min="0" max="1" step="0.01" value="0.55" aria-label="音量" />
+    </div>
+    <button id="btnFist" class="pill-btn" title="握拳行为 (G)">握拳 · 收拢</button>
+    <button id="btnCam" class="icon-btn" title="摄像头预览 (V)" aria-pressed="true">
+      <svg viewBox="0 0 24 24"><rect x="3" y="6" width="13" height="12" rx="2" /><path d="M16 10l5-3v10l-5-3z" /></svg>
+    </button>
+    <button id="btnFull" class="icon-btn" title="全屏 (F)">
+      <svg viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" /></svg>
+    </button>
+  </nav>
+
+  <!-- ========== 中央提示 ========== -->
+  <div class="hint" id="hint"></div>
+
+  <!-- ========== 摄像头预览 ========== -->
+  <figure class="preview ui-fade" id="preview">
+    <video id="video" playsinline muted></video>
+    <canvas id="landmarks"></canvas>
+    <figcaption id="previewCaption">摄像头未开启</figcaption>
+  </figure>
+
+  <!-- ========== 开场 ========== -->
+  <section class="intro" id="intro">
+    <div class="card">
+      <h1>花 语</h1>
+      <p class="sub">以手为风，唤醒一座安静的花园</p>
+      <ul class="guide">
+        <li><span class="g-icon">✋</span><b>张开手掌</b><em>花草生长、次第绽放</em></li>
+        <li><span class="g-icon">✊</span><b>握拳</b><em>花瓣收拢、回归土壤</em></li>
+        <li><span class="g-icon">〰</span><b>放下手</b><em>时光静止，花园呼吸</em></li>
+      </ul>
+      <button id="btnStart" class="primary">开启摄像头 · 进入花园</button>
+      <button id="btnDemo" class="ghost">无摄像头 · 键盘演示</button>
+      <p class="note" id="introNote">
+        建议使用最新版 Chrome / Edge，戴上耳机效果更佳。<br />
+        键盘：<kbd>↑</kbd> 模拟张开 · <kbd>↓</kbd> 模拟握拳 · <kbd>F</kbd> 全屏 · <kbd>M</kbd> 音乐 · <kbd>H</kbd> 隐藏界面
+      </p>
+    </div>
+  </section>
+
+  <div class="toast" id="toast" role="status"></div>
+
+  <!-- ========== 依赖：MediaPipe Hands（CDN） ========== -->
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4.1675469240/hands.js" crossorigin="anonymous"></script>
+
+  <!-- ========== 应用脚本（普通脚本，保证 file:// 可直接打开） ========== -->
+  <script src="js/config.js"></script>
+  <script src="js/utils.js"></script>
+  <script src="js/music.js"></script>
+  <script src="js/plants.js"></script>
+  <script src="js/garden.js"></script>
+  <script src="js/gesture.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>
