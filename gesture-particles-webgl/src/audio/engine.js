@@ -57,8 +57,9 @@ export class AudioEngine {
       const lc = { enabled: true, volume: 0.7, ...(A.layers[id] || {}) };
       try { const L = new Cls(this, lc); L.start(); this.layers.set(id, L); } catch (e) { console.error('音效层启动失败', id, e); }
     }
-    await ac.resume();
     this.started = true;
+    // 不等待 resume：无用户手势时（如 ?demo=1 直接打开）浏览器会挂起它，等首次点击再恢复
+    ac.resume().catch(() => {});
   }
 
   impulse(sec) {
