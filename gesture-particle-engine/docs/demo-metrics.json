@@ -1,0 +1,31 @@
+{
+  "captureEnvironment": "Microsoft Edge headless, WebGL (GPU 点精灵), Demo 模式自动轮播",
+  "viewport": "1440x900",
+  "renderer": "WebGL",
+  "fps": 60,
+  "targetFps": 30,
+  "qualityScale": 1.0,
+  "primaryScreenshot": {
+    "file": "screenshot-demo.png",
+    "gesture": "PINCH / 拇指食指捏合",
+    "effect": "VORTEX / 漩涡",
+    "particles": 621,
+    "frameProcessingMs": 0.9
+  },
+  "perStateMeasurements": [
+    { "gesture": "OPEN", "effect": "TRAIL", "state": "OPEN", "fps": 60, "particles": 311, "frameProcessingMs": 0.1 },
+    { "gesture": "FIST", "effect": "BURST", "state": "FIST", "fps": 60, "particles": 46, "frameProcessingMs": 0.3 },
+    { "gesture": "POINT", "effect": "LIGHTNING", "state": "POINT", "fps": 60, "particles": 162, "frameProcessingMs": 0.3 },
+    { "gesture": "PINCH", "effect": "VORTEX", "state": "PINCH", "fps": 60, "particles": 577, "frameProcessingMs": 0.5 },
+    { "gesture": "LIFT", "effect": "SCATTER+TRAIL", "state": "LIFT", "fps": 60, "particles": 669, "frameProcessingMs": 0.6 },
+    { "gesture": "DUAL", "effect": "VORTEX+BURST", "state": "DUAL", "fps": 60, "particles": 566, "frameProcessingMs": 0.7 }
+  ],
+  "recording": {
+    "file": "recording-demo.webm",
+    "durationMs": 6000,
+    "sizeBytes": 1209083,
+    "containsOverlay": "FPS / 粒子数 / 每帧处理耗时",
+    "containsAudio": true
+  },
+  "notes": "无头环境无摄像头，延迟一栏记录的是追踪+分类+发射+渲染的每帧处理耗时；真实摄像头模式下 HUD 显示的是 MediaPipe 单帧追踪耗时。所有状态实测稳定 60fps，高于 30fps 验收线。"
+}

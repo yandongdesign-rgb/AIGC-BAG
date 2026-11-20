@@ -1,0 +1,11 @@
+{
+  "name": "gesture-particle-engine",
+  "version": "1.0.0",
+  "private": true,
+  "description": "摄像头实时手势识别 + 粒子交互 + Web Audio 音效反馈",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "license": "MIT"
+}

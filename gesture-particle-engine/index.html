@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>手势交互粒子引擎 · Gesture Particle Engine</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <!-- 粒子主画布 -->
+  <canvas id="particleCanvas"></canvas>
+
+  <!-- 摄像头预览 + 骨架调试层 -->
+  <div id="cameraPanel" class="camera-panel">
+    <video id="cam" playsinline muted></video>
+    <canvas id="skeleton"></canvas>
+    <div class="cam-label">CAM · <span id="camMode">LIVE</span></div>
+    <button id="camClose" class="cam-close" title="隐藏摄像头画面">×</button>
+  </div>
+
+  <!-- 顶部状态条 -->
+  <header id="topbar" class="topbar">
+    <div class="brand">
+      <span class="brand-dot"></span>
+      <span>GESTURE <b>PARTICLE</b> ENGINE</span>
+    </div>
+    <div class="stats">
+      <div class="stat"><label>状态</label><strong id="statState">IDLE</strong></div>
+      <div class="stat"><label>帧率</label><strong id="statFps">--</strong></div>
+      <div class="stat"><label>粒子</label><strong id="statParticles">0</strong></div>
+      <div class="stat"><label>追踪延迟</label><strong id="statLatency">--</strong></div>
+      <div class="stat"><label>渲染</label><strong id="statRenderer">--</strong></div>
+      <div class="stat"><label>画质</label><strong id="statQuality">100%</strong></div>
+    </div>
+  </header>
+
+  <!-- 左侧手势图例 -->
+  <aside id="gesturePanel" class="panel gesture-panel">
+    <div class="panel-title">手势 / 特效映射</div>
+    <ul id="gestureList"></ul>
+    <div class="panel-foot">置信度 <span id="statConfidence">0%</span></div>
+  </aside>
+
+  <!-- 右侧控制面板 -->
+  <aside id="controlPanel" class="panel control-panel">
+    <div class="panel-title">控制台</div>
+
+    <button id="btnStart" class="btn primary">启动摄像头</button>
+    <button id="btnDemo" class="btn">演示模式（无需摄像头）</button>
+
+    <div class="row">
+      <label class="switch"><input type="checkbox" id="chkCamera" checked><span>显示摄像头</span></label>
+      <label class="switch"><input type="checkbox" id="chkSkeleton"><span>骨架调试</span></label>
+    </div>
+    <div class="row">
+      <label class="switch"><input type="checkbox" id="chkAudio" checked><span>音效</span></label>
+      <label class="switch"><input type="checkbox" id="chkOverlay" checked><span>HUD 面板</span></label>
+    </div>
+
+    <label class="field">音量 <span id="lblVolume">80%</span>
+      <input type="range" id="rngVolume" min="0" max="100" value="80">
+    </label>
+    <label class="field">粒子密度 <span id="lblDensity">100%</span>
+      <input type="range" id="rngDensity" min="30" max="100" value="100">
+    </label>
+    <label class="field">配色主题
+      <select id="selTheme">
+        <option value="midnight">午夜深蓝</option>
+        <option value="void">虚空黑</option>
+        <option value="aurora">极光青</option>
+      </select>
+    </label>
+
+    <div class="row">
+      <button id="btnRecord" class="btn small">● 录制 WebM</button>
+      <button id="btnReload" class="btn small ghost">重载配置</button>
+    </div>
+    <div id="recordHint" class="hint">录制按钮可将当前画面（含音效）保存为 WebM。</div>
+  </aside>
+
+  <!-- 底部状态提示 -->
+  <div id="statusBanner" class="status-banner">
+    <div class="status-accent"></div>
+    <div>
+      <strong id="bannerTitle">等待启动</strong>
+      <span id="bannerHint">点击「启动摄像头」授权，或使用演示模式直接预览</span>
+    </div>
+  </div>
+
+  <!-- 启动遮罩 -->
+  <div id="intro" class="intro">
+    <div class="intro-card">
+      <div class="intro-logo">✦</div>
+      <h1>手势交互粒子引擎</h1>
+      <p class="intro-sub">摄像头实时识别 · 粒子动效 · 空间音效</p>
+      <div class="intro-actions">
+        <button id="introStart" class="btn primary big">启动摄像头</button>
+        <button id="introDemo" class="btn big">演示模式</button>
+      </div>
+      <p class="intro-note">需要摄像头权限；数据全部在本地浏览器处理，不上传任何画面。</p>
+    </div>
+  </div>
+
+  <div id="toast" class="toast"></div>
+
+  <!-- MediaPipe（CDN） -->
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils@0.3.1675466862/camera_utils.js" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4.1675469240/hands.js" crossorigin="anonymous"></script>
+
+  <!-- 应用模块 -->
+  <script src="js/config.js"></script>
+  <script src="js/utils.js"></script>
+  <script src="js/hand-tracker.js"></script>
+  <script src="js/gesture-classifier.js"></script>
+  <script src="js/particle-engine.js"></script>
+  <script src="js/renderers.js"></script>
+  <script src="js/audio-engine.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>

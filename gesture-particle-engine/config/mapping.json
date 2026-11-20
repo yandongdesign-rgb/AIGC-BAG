@@ -1,0 +1,80 @@
+{
+  "version": 1,
+  "description": "手势 ↔ 特效 ↔ 音效 映射表。新增手势只需在 gestures 数组追加一项，并在 recognition.json 中配置判定阈值。",
+  "statePriority": ["DUAL", "PINCH", "FIST", "POINT", "LIFT", "OPEN", "IDLE"],
+  "gestures": [
+    {
+      "id": "OPEN",
+      "label": "手掌张开",
+      "hint": "五指伸直、指根张开",
+      "accent": "#48e0c0",
+      "effects": [{ "mode": "TRAIL", "weight": 1.0 }],
+      "sound": { "layers": ["flow"], "trigger": "sweep" }
+    },
+    {
+      "id": "FIST",
+      "label": "握拳",
+      "hint": "五指收拢成拳，握紧瞬间触发冲击",
+      "accent": "#ff7a45",
+      "effects": [{ "mode": "BURST", "weight": 1.0 }],
+      "sound": { "layers": [], "trigger": "impact" }
+    },
+    {
+      "id": "POINT",
+      "label": "食指指向",
+      "hint": "仅食指伸直，其余收拢",
+      "accent": "#8fd6ff",
+      "effects": [{ "mode": "LIGHTNING", "weight": 1.0 }],
+      "sound": { "layers": ["electric"], "trigger": "zap" }
+    },
+    {
+      "id": "PINCH",
+      "label": "拇指食指捏合",
+      "hint": "拇指与食指指尖间距极小",
+      "accent": "#b18cff",
+      "effects": [{ "mode": "VORTEX", "weight": 1.0 }],
+      "sound": { "layers": ["rotation"], "trigger": "suck" }
+    },
+    {
+      "id": "LIFT",
+      "label": "摊平上抬",
+      "hint": "掌心摊平并整体上移",
+      "accent": "#ffe08a",
+      "effects": [{ "mode": "SCATTER", "weight": 1.0 }, { "mode": "TRAIL", "weight": 0.25 }],
+      "sound": { "layers": ["pad"], "trigger": "chime" }
+    },
+    {
+      "id": "DUAL",
+      "label": "双手靠近 / 拉开",
+      "hint": "双手间距驱动涡旋半径与音高",
+      "accent": "#ff74b8",
+      "effects": [{ "mode": "VORTEX", "weight": 0.7 }, { "mode": "BURST", "weight": 0.35 }],
+      "sound": { "layers": ["dual"], "trigger": "pitchSlide" }
+    },
+    {
+      "id": "IDLE",
+      "label": "无手 / 丢失",
+      "hint": "置信度低于阈值，回到待机粒子流",
+      "accent": "#6f8ba8",
+      "effects": [{ "mode": "IDLE", "weight": 1.0 }],
+      "sound": { "layers": ["ambience"], "trigger": "silence" }
+    }
+  ],
+  "audioLayers": {
+    "ambience": { "gain": 0.05, "fade": 0.6, "description": "环境底噪" },
+    "flow": { "gain": 0.16, "fade": 0.35, "description": "流动空气感嗡鸣 + sweep" },
+    "electric": { "gain": 0.05, "fade": 0.12, "description": "高压嘶鸣底噪" },
+    "rotation": { "gain": 0.14, "fade": 0.3, "description": "旋转上升音 + 吸入低音" },
+    "pad": { "gain": 0.13, "fade": 0.5, "description": "空灵铺底 pad" },
+    "dual": { "gain": 0.12, "fade": 0.3, "description": "音高随双手距离滑动" }
+  },
+  "soundTriggers": {
+    "sweep": { "gain": 0.18, "cooldown": 0.9 },
+    "impact": { "gain": 0.55, "cooldown": 0.25 },
+    "zap": { "gain": 0.32, "cooldown": 0.09 },
+    "suck": { "gain": 0.3, "cooldown": 0.7 },
+    "chime": { "gain": 0.22, "cooldown": 0.45 },
+    "pitchSlide": { "gain": 0.12, "cooldown": 1.2 },
+    "silence": { "gain": 0.0, "cooldown": 0.1 }
+  }
+}

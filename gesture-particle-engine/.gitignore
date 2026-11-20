@@ -1,0 +1,5 @@
+node_modules/
+.edge-*/
+.edge-capture-profile/
+.DS_Store
+*.log
