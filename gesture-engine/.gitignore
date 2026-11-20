@@ -1,0 +1,4 @@
+vendor/*.task
+vendor/wasm/*.wasm
+*.download
+node_modules/

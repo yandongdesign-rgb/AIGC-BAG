@@ -1,0 +1,6 @@
+import {test} from 'node:test';import assert from 'node:assert/strict';import {classify,Stabilizer} from '../src/gestures.js';
+const cfg={pinchRatio:.32,raiseSpeed:.16,stableMs:120,lostMs:450};
+function hand(open=true){const l=Array.from({length:21},()=>({x:.5,y:.7,z:0}));l[0]={x:.5,y:.9};for(const [m,p,t,x]of [[5,6,8,.4],[9,10,12,.48],[13,14,16,.56],[17,18,20,.64]]){l[m]={x,y:.7};l[p]={x,y:open?.5:.68};l[t]={x,y:open?.25:.77};}l[3]={x:.35,y:.75};l[4]={x:open?.18:.44,y:.72};return l;}
+test('open, fist, point and pinch geometry',()=>{assert.equal(classify(hand(),null,0,cfg),'open');assert.equal(classify(hand(false),null,0,cfg),'fist');const p=hand(false);p[6]={x:.4,y:.5};p[8]={x:.4,y:.25};assert.equal(classify(p,null,0,cfg),'point');const pinch=hand();pinch[4]={...pinch[8]};assert.equal(classify(pinch,null,0,cfg),'pinch');});
+test('upward palm motion',()=>assert.equal(classify(hand(),{x:.48,y:.8},.1,cfg),'lift'));
+test('debounce and brief hand loss',()=>{const s=new Stabilizer(cfg);s.update('open',1000);assert.equal(s.update('open',1130),'open');assert.equal(s.update('fist',1140),'open');assert.equal(s.update('idle',1300),'open');s.update('idle',1800);assert.equal(s.update('idle',1930),'idle');});

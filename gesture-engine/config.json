@@ -1,0 +1,14 @@
+{
+  "particles": {"count": 28000, "minimum": 7000, "transitionSeconds": 0.45, "pixelRatio": 1.5},
+  "tracking": {"confidence": 0.6, "stableMs": 120, "lostMs": 450, "pinchRatio": 0.32, "raiseSpeed": 0.16, "inferenceFps": 24},
+  "audio": {"volume": 0.35, "layers": {"idle": true, "open": true, "fist": true, "point": true, "pinch": true, "lift": true, "dual": true}},
+  "gestures": {
+    "idle": {"label":"静默星海", "effect":"ambient", "sound":"air", "color":"#738bca", "frequency":55},
+    "open": {"label":"光带 · 张开手掌", "effect":"trail", "sound":"sweep", "color":"#5af6df", "frequency":160},
+    "fist": {"label":"闪爆 · 握拳", "effect":"burst", "sound":"impact", "color":"#ffab66", "frequency":48},
+    "point": {"label":"闪电 · 食指指向", "effect":"lightning", "sound":"electric", "color":"#a5b9ff", "frequency":240},
+    "pinch": {"label":"漩涡 · 拇指捏合", "effect":"vortex", "sound":"suction", "color":"#c494ff", "frequency":110},
+    "lift": {"label":"浮游 · 手掌上抬", "effect":"float", "sound":"chimes", "color":"#ff8fc8", "frequency":330},
+    "dual": {"label":"共振 · 双手缩放", "effect":"vortex", "sound":"resonance", "color":"#74d8ff", "frequency":190}
+  }
+}
