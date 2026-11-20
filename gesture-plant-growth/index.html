@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Gesture Plant · 手势植物生长</title>
+<style>
+  :root { --green: #7CFF6B; --ink: #e9efe6; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; background: #070806; color: var(--ink); overflow: hidden;
+    font-family: "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace; }
+  #stage { position: fixed; inset: 0; width: 100%; height: 100%; display: block; }
+  #cam { position: fixed; right: 18px; bottom: 18px; width: min(30vw, 320px); aspect-ratio: 4/3;
+    border: 1px solid #2a2f28; border-radius: 6px; overflow: hidden; background: #111; }
+  #cam video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;
+    transform: scaleX(-1); filter: grayscale(1) contrast(1.1) brightness(.9); }
+  #cam canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+  #hud { position: fixed; left: 18px; top: 16px; font-size: 12px; line-height: 1.7; letter-spacing: .04em; pointer-events: none; }
+  #hud b { color: var(--green); font-weight: 500; }
+  .bar { width: 160px; height: 3px; background: #222; margin: 2px 0 6px; }
+  .bar i { display: block; height: 100%; background: var(--green); width: 0; }
+  .bar.bloom i { background: #ff9ccf; }
+  #intro { position: fixed; inset: 0; display: grid; place-items: center; background: rgba(5,6,5,.86); z-index: 5; }
+  #intro .card { max-width: 440px; padding: 28px; text-align: center; }
+  #intro h1 { font-size: 20px; font-weight: 500; margin-bottom: 14px; letter-spacing: .08em; }
+  #intro p { font-size: 13px; opacity: .8; line-height: 1.8; margin-bottom: 8px; }
+  #intro button { margin: 16px 6px 0; padding: 10px 18px; font: inherit; font-size: 13px; color: #070806;
+    background: var(--green); border: 0; border-radius: 4px; cursor: pointer; }
+  #intro button.ghost { background: transparent; color: var(--ink); border: 1px solid #444; }
+  #status { position: fixed; left: 50%; bottom: 18px; transform: translateX(-50%); font-size: 12px; opacity: .6; pointer-events: none; }
+</style>
+</head>
+<body>
+<canvas id="stage"></canvas>
+
+<div id="cam"><video id="video" playsinline muted></video><canvas id="overlay"></canvas></div>
+
+<div id="hud">
+  <div>GROWTH <b id="gv">0.00</b></div><div class="bar"><i id="gb"></i></div>
+  <div>BLOOM&nbsp; <b id="bv">0.00</b></div><div class="bar bloom"><i id="bb"></i></div>
+  <div id="mode" style="opacity:.6">—</div>
+</div>
+<div id="status"></div>
+
+<div id="intro"><div class="card">
+  <h1>GESTURE · PLANT</h1>
+  <p>右手（画面右侧）拇指与食指张开 → 植物生长<br>捏合 → 植物回收</p>
+  <p>左手（画面左侧）拇指与食指张开 → 开花<br>握拳 → 快速收回</p>
+  <p style="opacity:.55">无摄像头时：鼠标上下拖动控制生长，滚轮控制开花</p>
+  <button id="start">开启摄像头</button><button id="mouse" class="ghost">鼠标模式</button>
+</div></div>
+
+<script type="module">
+/* ---------------- config ---------------- */
+const MP_VER = "0.10.14";
+const MP_URL = `https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@${MP_VER}`;
+const MODEL  = "https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task";
+
+/* ---------------- state ---------------- */
+const S = { growT: 0, bloomT: 0, grow: 0, bloom: 0, prevGrow: 0, motion: 0, hands: [], mode: "idle" };
+const $ = id => document.getElementById(id);
+const stage = $("stage"), ctx = stage.getContext("2d");
+const video = $("video"), ov = $("overlay"), octx = ov.getContext("2d");
+let W, H, DPR;
+function resize() {
+  DPR = Math.min(devicePixelRatio || 1, 2);
+  W = innerWidth; H = innerHeight;
+  stage.width = W * DPR; stage.height = H * DPR;
+  ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+}
+addEventListener("resize", resize); resize();
+
+/* ---------------- seeded random ---------------- */
+let seed = 7;
+const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+const R = (a, b) => a + (b - a) * rnd();
+const clamp = (v, a = 0, b = 1) => Math.max(a, Math.min(b, v));
+const ease = t => t * t * (3 - 2 * t);
+
+/* ---------------- plant model ----------------
+   Each branch has a start time t0 and duration dur on the global growth axis [0..1].
+   Visible length = len * ease((G - t0) / dur). Retracting is just G going down. */
+function makeBranch(depth, angle, len, t0, dur) {
+  const b = { depth, angle, len, t0, dur, bend: R(-0.25, 0.25), leaves: [], kids: [], flower: null };
+  const nLeaves = depth === 0 ? 2 : Math.floor(R(1, 3));
+  for (let i = 0; i < nLeaves; i++) {
+    const s = R(0.35, 0.9);
+    b.leaves.push({ s, side: i % 2 ? 1 : -1, size: R(0.85, 1.2) * (50 - depth * 7), tilt: R(0.5, 0.95), hue: R(95, 125) });
+  }
+  const end = t0 + dur;
+  if (depth < 3) {
+    const n = depth === 0 ? 3 : Math.floor(R(1, 3.2));
+    for (let i = 0; i < n; i++) {
+      const spread = depth === 0 ? [-0.55, 0.08, 0.6][i] : R(-0.7, 0.7);
+      const at = depth === 0 ? end - 0.08 * (2 - i) : end;     // trunk sprouts staggered side shoots
+      b.kids.push(makeBranch(depth + 1, spread, len * R(0.62, 0.8), at, dur * 0.82));
+    }
+  }
+  // terminal leaf + flower on every tip
+  if (b.kids.length === 0) {
+    b.leaves.push({ s: 1, side: 0, size: 54 - depth * 7, tilt: 0, hue: R(70, 95), tip: true });
+    b.flower = { petals: Math.floor(R(5, 7)), hue: R(320, 350), size: R(14, 20), spin: R(0, 6.28), delay: R(0, 0.35) };
+  }
+  return b;
+}
+const plant = makeBranch(0, 0, 150, 0, 0.36);
+
+/* ---------------- drawing ---------------- */
+let tips = [];   // world coords of leaf tips (for the plexus lines)
+let time = 0;
+
+function drawLeaf(L, scale, sway) {
+  if (scale <= 0.01) return;
+  const sz = L.size * scale;
+  ctx.save();
+  ctx.rotate(L.side * (L.tilt + sway * 2) + (L.tip ? sway : 0));
+  const g = ctx.createLinearGradient(0, 0, 0, -sz);
+  const light = 35 + 20 * (1 - L.hue / 125);
+  g.addColorStop(0, `hsl(${L.hue + 10} 70% ${light - 12}%)`);
+  g.addColorStop(1, `hsl(${L.hue - 25} 92% ${light + 18}%)`);
+  ctx.fillStyle = g;
+  ctx.beginPath();
+  ctx.moveTo(0, 0);
+  ctx.bezierCurveTo(sz * 0.55, -sz * 0.15, sz * 0.45, -sz * 0.75, 0, -sz);
+  ctx.bezierCurveTo(-sz * 0.45, -sz * 0.75, -sz * 0.55, -sz * 0.15, 0, 0);
+  ctx.fill();
+  ctx.strokeStyle = "rgba(230,255,200,.35)"; ctx.lineWidth = 0.8;
+  ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(0, -sz * 0.92); ctx.stroke();
+  // highlight
+  ctx.fillStyle = "rgba(255,255,255,.08)";
+  ctx.beginPath(); ctx.ellipse(-sz * 0.12, -sz * 0.55, sz * 0.08, sz * 0.25, 0.3, 0, 6.29); ctx.fill();
+  const m = ctx.getTransform(); const p = m.transformPoint(new DOMPoint(0, -sz));
+  tips.push({ x: p.x / DPR, y: p.y / DPR });
+  ctx.restore();
+}
+
+function drawFlower(F, open) {
+  if (open <= 0.01) return;
+  const r = F.size * (0.4 + 0.6 * open);
+  ctx.save();
+  ctx.rotate(F.spin + time * 0.2);
+  // glow
+  const glow = ctx.createRadialGradient(0, 0, 0, 0, 0, r * 2.4);
+  glow.addColorStop(0, `hsla(${F.hue} 100% 75% / ${0.35 * open})`); glow.addColorStop(1, "hsla(0 0% 0% / 0)");
+  ctx.fillStyle = glow; ctx.beginPath(); ctx.arc(0, 0, r * 2.4, 0, 6.29); ctx.fill();
+  for (let i = 0; i < F.petals; i++) {
+    ctx.save();
+    ctx.rotate((i / F.petals) * Math.PI * 2);
+    ctx.scale(1, 0.35 + 0.65 * open);              // petals unfold
+    const g = ctx.createLinearGradient(0, 0, 0, -r);
+    g.addColorStop(0, `hsl(${F.hue} 70% 55%)`); g.addColorStop(1, `hsl(${F.hue + 15} 100% 88%)`);
+    ctx.fillStyle = g;
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.bezierCurveTo(r * 0.6, -r * 0.3, r * 0.4, -r, 0, -r * 1.05);
+    ctx.bezierCurveTo(-r * 0.4, -r, -r * 0.6, -r * 0.3, 0, 0);
+    ctx.fill();
+    ctx.restore();
+  }
+  ctx.fillStyle = "#ffd84a"; ctx.beginPath(); ctx.arc(0, 0, r * 0.22, 0, 6.29); ctx.fill();
+  ctx.fillStyle = "#fff6b0";
+  for (let i = 0; i < 6; i++) { const a = i * 1.05; ctx.beginPath(); ctx.arc(Math.cos(a) * r * 0.32, Math.sin(a) * r * 0.32, 1.3, 0, 6.29); ctx.fill(); }
+  ctx.restore();
+}
+
+function drawBranch(b, G, B) {
+  const p = ease(clamp((G - b.t0) / b.dur));
+  if (p <= 0) return;
+  const sway = Math.sin(time * 1.3 + b.depth * 1.7 + b.angle * 3) * 0.025 * (b.depth + 1);
+  ctx.save();
+  ctx.rotate(b.angle * p + sway);
+  const L = b.len * p, w = Math.max(1.2, (7 - b.depth * 1.7) * (0.4 + 0.6 * p));
+  ctx.strokeStyle = `hsl(${100 - b.depth * 6} 45% ${22 + b.depth * 6}%)`;
+  ctx.lineWidth = w; ctx.lineCap = "round";
+  ctx.beginPath(); ctx.moveTo(0, 0);
+  ctx.quadraticCurveTo(b.bend * L, -L * 0.5, 0, -L); ctx.stroke();
+
+  for (const lf of b.leaves) {
+    const appear = clamp((p - lf.s * 0.85) * 5);
+    if (appear <= 0) continue;
+    ctx.save(); ctx.translate(lf.side === 0 ? 0 : b.bend * L * 0.5 * (1 - Math.abs(lf.s - 0.5) * 2), -L * lf.s);
+    drawLeaf(lf, ease(appear) * (0.35 + 0.65 * p), sway);
+    ctx.restore();
+  }
+  ctx.translate(0, -L);
+  for (const k of b.kids) drawBranch(k, G, B);
+  if (b.flower && p >= 0.98) {
+    const open = ease(clamp((B - b.flower.delay) / (1 - b.flower.delay * 0.9)));
+    ctx.save(); ctx.translate(0, -6); drawFlower(b.flower, open); ctx.restore();
+  }
+  ctx.restore();
+}
+
+function drawSoil(baseX, baseY) {
+  const g = ctx.createRadialGradient(baseX, baseY + 10, 4, baseX, baseY + 10, 120);
+  g.addColorStop(0, "#3a2a1c"); g.addColorStop(1, "rgba(20,14,9,0)");
+  ctx.fillStyle = g;
+  ctx.beginPath(); ctx.ellipse(baseX, baseY + 14, 120, 34, 0, 0, 6.29); ctx.fill();
+  ctx.fillStyle = "#24180f";
+  ctx.beginPath(); ctx.ellipse(baseX, baseY + 6, 62, 18, 0, Math.PI, 0); ctx.fill();
+  seed = 99;
+  for (let i = 0; i < 40; i++) { ctx.fillStyle = `rgba(${R(60, 110)},${R(40, 70)},${R(25, 40)},.8)`;
+    ctx.beginPath(); ctx.arc(baseX + R(-60, 60), baseY + R(-6, 12), R(1, 3), 0, 6.29); ctx.fill(); }
+}
+
+function drawPlexus() {
+  // thin white lines between leaf tips, strongest while the plant is moving (like the reference video)
+  const a = clamp(S.motion * 30);
+  if (a < 0.02 || tips.length < 2) return;
+  ctx.lineWidth = 0.6;
+  for (let i = 0; i < tips.length; i++) for (let j = i + 1; j < tips.length; j++) {
+    const dx = tips[i].x - tips[j].x, dy = tips[i].y - tips[j].y, d = Math.hypot(dx, dy);
+    if (d > 220) continue;
+    ctx.strokeStyle = `rgba(235,245,230,${a * 0.55 * (1 - d / 220)})`;
+    ctx.beginPath(); ctx.moveTo(tips[i].x, tips[i].y); ctx.lineTo(tips[j].x, tips[j].y); ctx.stroke();
+  }
+  ctx.fillStyle = `rgba(255,255,255,${a * 0.9})`;
+  for (const t of tips) { ctx.beginPath(); ctx.arc(t.x, t.y, 1.6, 0, 6.29); ctx.fill(); }
+}
+
+function render() {
+  // background with warm vignette
+  const bg = ctx.createRadialGradient(W / 2, H * 0.55, 0, W / 2, H * 0.55, Math.max(W, H) * 0.7);
+  bg.addColorStop(0, "#1b1a10"); bg.addColorStop(1, "#050604");
+  ctx.fillStyle = bg; ctx.fillRect(0, 0, W, H);
+
+  const scale = Math.min(W * 0.9, H) / 800;
+  const baseX = W / 2, baseY = H * 0.84;
+  drawSoil(baseX, baseY);
+  tips = [];
+  ctx.save();
+  ctx.translate(baseX, baseY);
+  ctx.scale(scale * 1.3, scale * 1.3);
+  if (S.grow > 0.001) drawBranch(plant, S.grow, S.bloom * clamp((S.grow - 0.9) * 10));
+  else { // seed
+    ctx.fillStyle = "#8b6a3c"; ctx.beginPath(); ctx.ellipse(0, -2, 5, 3.5, 0.3, 0, 6.29); ctx.fill();
+  }
+  ctx.restore();
+  ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  drawPlexus();
+}
+
+/* ---------------- sound (soft drone, follows growth/bloom) ---------------- */
+let audio = null;
+function initAudio() {
+  try {
+    const ac = new AudioContext();
+    const master = ac.createGain(); master.gain.value = 0; master.connect(ac.destination);
+    const filt = ac.createBiquadFilter(); filt.type = "lowpass"; filt.frequency.value = 400; filt.Q.value = 6; filt.connect(master);
+    const oscs = [110, 164.8, 220, 277.2].map((f, i) => { const o = ac.createOscillator(); o.type = i % 2 ? "sine" : "triangle"; o.frequency.value = f; o.connect(filt); o.start(); return o; });
+    const bell = ac.createGain(); bell.gain.value = 0; bell.connect(ac.destination);
+    const bo = ac.createOscillator(); bo.type = "sine"; bo.frequency.value = 880; bo.connect(bell); bo.start();
+    audio = { ac, master, filt, oscs, bell, bo };
+  } catch (e) { audio = null; }
+}
+function updateAudio() {
+  if (!audio) return;
+  const t = audio.ac.currentTime;
+  audio.master.gain.setTargetAtTime(0.025 + clamp(S.motion * 30) * 0.08, t, 0.15);
+  audio.filt.frequency.setTargetAtTime(200 + S.grow * 2400, t, 0.1);
+  audio.oscs.forEach((o, i) => o.detune.setTargetAtTime(S.grow * 700 + i * 3, t, 0.2));
+  audio.bell.gain.setTargetAtTime(S.bloom * clamp((S.grow - 0.9) * 10) * 0.03, t, 0.3);
+  audio.bo.frequency.setTargetAtTime(660 + S.bloom * 440 + Math.sin(time * 3) * 8, t, 0.1);
+}
+
+/* ---------------- hand tracking ---------------- */
+let landmarker = null, lastVideoTime = -1;
+const dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y, (a.z || 0) - (b.z || 0));
+
+function pinchOpen(lm) {
+  // thumb–index distance normalised by palm size → 0 (pinched) … 1 (wide open)
+  const palm = dist(lm[0], lm[9]) || 1e-3;
+  return clamp((dist(lm[4], lm[8]) / palm - 0.18) / 0.95);
+}
+function isFist(lm) {
+  const palm = dist(lm[0], lm[9]);
+  return [8, 12, 16, 20].every(i => dist(lm[i], lm[0]) < palm * 1.05);
+}
+
+async function startCamera() {
+  setStatus("加载手势模型…");
+  try {
+    const { HandLandmarker, FilesetResolver } = await import(`${MP_URL}/vision_bundle.mjs`);
+    const fs = await FilesetResolver.forVisionTasks(`${MP_URL}/wasm`);
+    landmarker = await HandLandmarker.createFromOptions(fs, {
+      baseOptions: { modelAssetPath: MODEL, delegate: "GPU" }, runningMode: "VIDEO", numHands: 2,
+    });
+    setStatus("请求摄像头…");
+    const stream = await navigator.mediaDevices.getUserMedia({ video: { width: 640, height: 480, facingMode: "user" } });
+    video.srcObject = stream; await video.play();
+    ov.width = video.videoWidth; ov.height = video.videoHeight;
+    S.mode = "hand"; setStatus("");
+  } catch (e) {
+    console.error(e);
+    setStatus("摄像头/模型不可用，已切换为鼠标模式");
+    startMouse();
+  }
+}
+
+function trackHands() {
+  if (!landmarker || video.readyState < 2 || video.currentTime === lastVideoTime) return;
+  lastVideoTime = video.currentTime;
+  const res = landmarker.detectForVideo(video, performance.now());
+  // mirror x so "screen right" matches what the user sees
+  const hands = (res.landmarks || []).map(lm => lm.map(p => ({ x: 1 - p.x, y: p.y, z: p.z })));
+  hands.sort((a, b) => a[0].x - b[0].x);              // left-of-screen first
+  S.hands = hands;
+
+  if (hands.length === 1) {
+    const h = hands[0];
+    if (isFist(h)) { S.growT = 0; S.bloomT = 0; }
+    else if (h[0].x > 0.5) S.growT = pinchOpen(h);   // single hand on the right → growth
+    else S.bloomT = pinchOpen(h);                    // single hand on the left → bloom
+  } else if (hands.length >= 2) {
+    const [l, r] = hands;
+    if (isFist(l) && isFist(r)) { S.growT = 0; S.bloomT = 0; }
+    else { S.bloomT = isFist(l) ? 0 : pinchOpen(l); S.growT = isFist(r) ? 0 : pinchOpen(r); }
+  }
+  drawOverlay(hands);
+}
+
+function drawOverlay(hands) {
+  const w = ov.width, h = ov.height;
+  octx.clearRect(0, 0, w, h);
+  hands.forEach((lm, idx) => {
+    const isGrow = hands.length === 1 ? lm[0].x > 0.5 : idx === hands.length - 1;
+    const a = lm[4], b = lm[8];
+    octx.strokeStyle = "rgba(255,255,255,.9)"; octx.lineWidth = 2;
+    octx.beginPath(); octx.moveTo(a.x * w, a.y * h); octx.lineTo(b.x * w, b.y * h); octx.stroke();
+    for (const p of [a, b]) { octx.fillStyle = "#fff"; octx.beginPath(); octx.arc(p.x * w, p.y * h, 6, 0, 6.29); octx.fill(); }
+    octx.fillStyle = "#7CFF6B"; octx.font = "bold 18px monospace";
+    const val = pinchOpen(lm).toFixed(2);
+    octx.fillText(`${isFist(lm) ? "FIST" : isGrow ? "growth" : "bloom"} ${val}`, (a.x + b.x) / 2 * w + 12, (a.y + b.y) / 2 * h);
+    octx.fillStyle = "rgba(124,255,107,.5)";
+    for (const p of lm) { octx.beginPath(); octx.arc(p.x * w, p.y * h, 2.5, 0, 6.29); octx.fill(); }
+  });
+}
+
+/* ---------------- mouse / keyboard fallback ---------------- */
+function startMouse() {
+  S.mode = "mouse"; $("cam").style.display = "none";
+  let down = false;
+  stage.addEventListener("pointerdown", e => { down = true; S.growT = clamp(1 - e.clientY / H * 1.1 + 0.05); });
+  addEventListener("pointerup", () => down = false);
+  addEventListener("pointermove", e => { if (down) S.growT = clamp(1 - e.clientY / H * 1.1 + 0.05); });
+  addEventListener("wheel", e => { S.bloomT = clamp(S.bloomT - e.deltaY * 0.0015); }, { passive: true });
+}
+addEventListener("keydown", e => {
+  if (e.key === "ArrowUp") S.growT = clamp(S.growT + 0.1);
+  if (e.key === "ArrowDown") S.growT = clamp(S.growT - 0.1);
+  if (e.key === "f" || e.key === "F") S.bloomT = S.bloomT > 0.5 ? 0 : 1;
+  if (e.key === "r" || e.key === "R") { seed = Math.floor(Math.random() * 1e6) + 1; Object.assign(plant, makeBranch(0, 0, 150, 0, 0.36)); }
+});
+
+function setStatus(t) { $("status").textContent = t; }
+
+$("start").onclick = () => { $("intro").remove(); initAudio(); startCamera(); };
+$("mouse").onclick = () => { $("intro").remove(); initAudio(); startMouse(); };
+
+/* ---------------- main loop ---------------- */
+let last = performance.now();
+function loop(now) {
+  const dt = Math.min(0.05, (now - last) / 1000); last = now; time += dt;
+  trackHands();
+  S.prevGrow = S.grow;
+  S.grow += (S.growT - S.grow) * (1 - Math.exp(-dt * 3.2));
+  S.bloom += (S.bloomT - S.bloom) * (1 - Math.exp(-dt * 2.4));
+  S.motion = S.motion * 0.9 + Math.abs(S.grow - S.prevGrow) * 0.1 / Math.max(dt, 1e-3) * 0.016;
+  render(); updateAudio();
+  $("gv").textContent = S.grow.toFixed(2); $("gb").style.width = S.grow * 100 + "%";
+  $("bv").textContent = S.bloom.toFixed(2); $("bb").style.width = S.bloom * 100 + "%";
+  $("mode").textContent = S.mode === "hand" ? `HANDS ${S.hands.length}` : S.mode === "mouse" ? "MOUSE · ↑↓ / F / R" : "—";
+  requestAnimationFrame(loop);
+}
+requestAnimationFrame(loop);
+
+// expose for testing
+window.__plant = S;
+</script>
+</body>
+</html>
