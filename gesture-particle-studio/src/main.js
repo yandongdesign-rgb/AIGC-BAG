@@ -87,6 +87,7 @@ async function startCamera() {
 async function startDemo() {
   hideStart();
   audio.start().catch(() => {});
+  tracker.stop($('#cam'));
   state.source = 'demo';
   renderer.videoMesh.visible = false;
   renderer.videoAspect = null;
@@ -188,9 +189,12 @@ function loop(now) {
   const t0 = performance.now();
 
   let hands = null;
+  let detectMs = 0;
   let videoAspect = renderer.aspect;
   if (state.source === 'camera') {
+    const td = performance.now();
     hands = tracker.detect($('#cam'), now);
+    if (hands) detectMs = performance.now() - td;
     videoAspect = tracker.aspect;
   } else if (state.source === 'demo') {
     hands = sim.update(dt, videoAspect);
@@ -215,7 +219,7 @@ function loop(now) {
   state.fps = damp(state.fps, 1 / dt, 0.5, dt);
   if (state.source === 'camera') {
     const cap = tracker.frameCaptureTime;
-    state.latencyMs = cap ? damp(state.latencyMs, performance.now() - cap, 0.4, dt) : damp(state.latencyMs, tracker.inferMs + work, 0.4, dt);
+    state.latencyMs = cap ? damp(state.latencyMs, performance.now() - cap, 0.4, dt) : damp(state.latencyMs, tracker.inferMs + work - detectMs, 0.4, dt);
   } else state.latencyMs = damp(state.latencyMs, work, 0.4, dt);
   qualityGovernor(now, dt);
 
