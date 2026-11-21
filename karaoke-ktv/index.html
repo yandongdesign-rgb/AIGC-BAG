@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>星耀 KTV · 点歌演唱系统</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <!-- ======================= 图标库（内联 SVG，离线可用） ======================= -->
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <defs>
+      <linearGradient id="gNeon" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#3ee8ff"/><stop offset="1" stop-color="#ff4fd8"/></linearGradient>
+    </defs>
+    <symbol id="i-play" viewBox="0 0 24 24"><path d="M8 5.5v13a1 1 0 0 0 1.5.86l10.5-6.5a1 1 0 0 0 0-1.72L9.5 4.64A1 1 0 0 0 8 5.5z" fill="currentColor"/></symbol>
+    <symbol id="i-pause" viewBox="0 0 24 24"><rect x="6" y="5" width="4.2" height="14" rx="1.4" fill="currentColor"/><rect x="13.8" y="5" width="4.2" height="14" rx="1.4" fill="currentColor"/></symbol>
+    <symbol id="i-next" viewBox="0 0 24 24"><path d="M5 6.2v11.6a1 1 0 0 0 1.55.83L15 13v4.8a1 1 0 0 0 2 0V6.2a1 1 0 0 0-2 0V11L6.55 5.37A1 1 0 0 0 5 6.2z" fill="currentColor"/></symbol>
+    <symbol id="i-prev" viewBox="0 0 24 24"><path d="M19 6.2v11.6a1 1 0 0 1-1.55.83L9 13v4.8a1 1 0 0 1-2 0V6.2a1 1 0 0 1 2 0V11l8.45-5.63A1 1 0 0 1 19 6.2z" fill="currentColor"/></symbol>
+    <symbol id="i-replay" viewBox="0 0 24 24"><path d="M12 5V2L7 6l5 4V7a6 6 0 1 1-6 6H4a8 8 0 1 0 8-8z" fill="currentColor"/></symbol>
+    <symbol id="i-vol" viewBox="0 0 24 24"><path d="M4 9.5v5a1 1 0 0 0 1 1h3l4.4 3.6A1 1 0 0 0 14 18.3V5.7a1 1 0 0 0-1.6-.8L8 8.5H5a1 1 0 0 0-1 1z" fill="currentColor"/><path d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round"/></symbol>
+    <symbol id="i-mute" viewBox="0 0 24 24"><path d="M4 9.5v5a1 1 0 0 0 1 1h3l4.4 3.6A1 1 0 0 0 14 18.3V5.7a1 1 0 0 0-1.6-.8L8 8.5H5a1 1 0 0 0-1 1z" fill="currentColor"/><path d="M17 9.5l5 5m0-5l-5 5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+    <symbol id="i-music" viewBox="0 0 24 24"><path d="M9 17.5V6.3a1 1 0 0 1 .78-.98l9-2A1 1 0 0 1 20 4.3v11.2" stroke="currentColor" stroke-width="1.8" fill="none"/><circle cx="6.5" cy="17.5" r="2.8" fill="currentColor"/><circle cx="17.5" cy="15.5" r="2.8" fill="currentColor"/></symbol>
+    <symbol id="i-mic" viewBox="0 0 24 24"><rect x="8.5" y="2.5" width="7" height="12" rx="3.5" fill="currentColor"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21m-3.5 0h7" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round"/></symbol>
+    <symbol id="i-mic-off" viewBox="0 0 24 24"><rect x="8.5" y="2.5" width="7" height="12" rx="3.5" fill="currentColor" opacity=".45"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21m-3.5 0h7M4 3l16 18" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round"/></symbol>
+    <symbol id="i-headphone" viewBox="0 0 24 24"><path d="M4 15v-3a8 8 0 0 1 16 0v3" stroke="currentColor" stroke-width="1.8" fill="none"/><rect x="3" y="13.5" width="5" height="7" rx="2" fill="currentColor"/><rect x="16" y="13.5" width="5" height="7" rx="2" fill="currentColor"/></symbol>
+    <symbol id="i-rec" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5" stroke="currentColor" stroke-width="1.8" fill="none"/><circle cx="12" cy="12" r="4.5" fill="currentColor"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5" stroke="currentColor" stroke-width="2" fill="none"/><path d="M15.5 15.5L20 20" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></symbol>
+    <symbol id="i-minus" viewBox="0 0 24 24"><path d="M5 12h14" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></symbol>
+    <symbol id="i-top" viewBox="0 0 24 24"><path d="M5 4.5h14M12 20V9m-5 5l5-5 5 5" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-trash" viewBox="0 0 24 24"><path d="M4.5 7h15M9 7V4.5h6V7m-8.5 0l1 12.5h9l1-12.5" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-heart" viewBox="0 0 24 24"><path d="M12 20s-7.5-4.6-7.5-10.2A4.3 4.3 0 0 1 12 7.3a4.3 4.3 0 0 1 7.5 2.5C19.5 15.4 12 20 12 20z" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linejoin="round"/></symbol>
+    <symbol id="i-heart-fill" viewBox="0 0 24 24"><path d="M12 20s-7.5-4.6-7.5-10.2A4.3 4.3 0 0 1 12 7.3a4.3 4.3 0 0 1 7.5 2.5C19.5 15.4 12 20 12 20z" fill="currentColor"/></symbol>
+    <symbol id="i-upload" viewBox="0 0 24 24"><path d="M12 15.5V4m-4.5 4.5L12 4l4.5 4.5M4.5 15v3.5a1.5 1.5 0 0 0 1.5 1.5h12a1.5 1.5 0 0 0 1.5-1.5V15" stroke="currentColor" stroke-width="1.9" fill="none" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 4v11.5M7.5 11L12 15.5 16.5 11M4.5 15v3.5a1.5 1.5 0 0 0 1.5 1.5h12a1.5 1.5 0 0 0 1.5-1.5V15" stroke="currentColor" stroke-width="1.9" fill="none" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-image" viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="14" rx="2.5" stroke="currentColor" stroke-width="1.8" fill="none"/><circle cx="9" cy="10" r="1.8" fill="currentColor"/><path d="M4 17l5-4.5 3.5 3 3-2.5L20 17" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linejoin="round"/></symbol>
+    <symbol id="i-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.2" stroke="currentColor" stroke-width="1.8" fill="none"/><path d="M12 2.8v2.6m0 13.2v2.6M2.8 12h2.6m13.2 0h2.6M5.5 5.5l1.9 1.9m9.2 9.2l1.9 1.9M5.5 18.5l1.9-1.9m9.2-9.2l1.9-1.9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+    <symbol id="i-full" viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" stroke="currentColor" stroke-width="1.9" fill="none" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-list" viewBox="0 0 24 24"><path d="M8 6h12M8 12h12M8 18h12" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/><circle cx="4" cy="6" r="1.3" fill="currentColor"/><circle cx="4" cy="12" r="1.3" fill="currentColor"/><circle cx="4" cy="18" r="1.3" fill="currentColor"/></symbol>
+    <symbol id="i-seq" viewBox="0 0 24 24"><path d="M4 7h12m-3-3l3 3-3 3M4 12h9M4 17h12m-3-3l3 3-3 3" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-repeat" viewBox="0 0 24 24"><path d="M5 11V9a3 3 0 0 1 3-3h10m-3-3l3 3-3 3M19 13v2a3 3 0 0 1-3 3H6m3 3l-3-3 3-3" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-repeat-one" viewBox="0 0 24 24"><path d="M5 11V9a3 3 0 0 1 3-3h10m-3-3l3 3-3 3M19 13v2a3 3 0 0 1-3 3H6m3 3l-3-3 3-3" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/><text x="12" y="14.6" font-size="7.5" font-weight="800" text-anchor="middle" fill="currentColor" font-family="Arial">1</text></symbol>
+    <symbol id="i-lyric" viewBox="0 0 24 24"><path d="M4 7h10M4 12h16M4 17h12" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/></symbol>
+    <symbol id="i-close" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+    <symbol id="i-chev-r" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-chev-l" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-edit" viewBox="0 0 24 24"><path d="M4 20h4l10.5-10.5a2.1 2.1 0 0 0-4-4L4 16v4z" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linejoin="round"/></symbol>
+    <symbol id="i-export" viewBox="0 0 24 24"><path d="M14 4h6v6M20 4l-9 9M18 14v4.5a1.5 1.5 0 0 1-1.5 1.5h-11A1.5 1.5 0 0 1 4 18.5v-11A1.5 1.5 0 0 1 5.5 6H10" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-star" viewBox="0 0 24 24"><path d="M12 2.8l2.8 5.9 6.4.8-4.7 4.4 1.2 6.4L12 17.2l-5.7 3.1 1.2-6.4-4.7-4.4 6.4-.8z" fill="currentColor"/></symbol>
+  </svg>
+
+  <div class="app" id="app">
+    <!-- ======================= 顶部栏 ======================= -->
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-logo"><svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="17" fill="none" stroke="url(#gNeon)" stroke-width="2.5"/><path d="M16 12.5v15l12-7.5z" fill="url(#gNeon)"/></svg></div>
+        <div class="brand-text"><b>星耀 KTV</b><small>KARAOKE STUDIO</small></div>
+      </div>
+      <div class="now-playing" id="nowPlaying">
+        <span class="np-label">正在演唱</span>
+        <span class="np-title" id="npTitle">尚未点歌</span>
+        <span class="np-artist" id="npArtist"></span>
+      </div>
+      <div class="status-chips">
+        <span class="chip chip-vocal" id="chipVocal" title="原唱 / 伴唱状态">伴唱</span>
+        <span class="chip" id="chipKey" title="当前音调">原调</span>
+        <span class="chip" id="chipMic" title="麦克风状态">麦克风 · 关</span>
+        <span class="chip chip-rec hidden" id="chipRec"><i></i>REC <em id="recTime">00:00</em></span>
+      </div>
+      <div class="top-actions">
+        <button class="tbtn" id="btnUpload" title="上传歌曲"><svg><use href="#i-upload"/></svg><span>上传歌曲</span></button>
+        <button class="tbtn" id="btnBg" title="播放背景"><svg><use href="#i-image"/></svg><span>背景</span></button>
+        <button class="tbtn" id="btnSettings" title="设置"><svg><use href="#i-gear"/></svg><span>设置</span></button>
+        <button class="tbtn icon-only" id="btnFull" title="全屏 (F)"><svg><use href="#i-full"/></svg></button>
+        <div class="clock" id="clock">00:00</div>
+      </div>
+    </header>
+
+    <!-- ======================= 主体 ======================= -->
+    <main class="main" id="main">
+      <!-- 点歌区 -->
+      <aside class="panel picker" id="picker">
+        <div class="picker-head">
+          <h2>点歌台</h2>
+          <span class="sub" id="libCount">曲库 0 首</span>
+        </div>
+        <label class="search">
+          <svg><use href="#i-search"/></svg>
+          <input id="searchInput" type="text" placeholder="搜索歌名 / 歌手 / 拼音首字母" autocomplete="off" />
+          <button class="search-clear hidden" id="searchClear" title="清除"><svg><use href="#i-close"/></svg></button>
+        </label>
+        <div class="cats" id="cats"></div>
+        <div class="list-head"><span id="listTitle">热门歌曲</span><span id="listCount"></span></div>
+        <div class="song-list" id="songList"></div>
+      </aside>
+
+      <!-- 歌词大屏 -->
+      <section class="stage" id="stage">
+        <div class="bg-layer" id="bgLayer"></div>
+        <div class="stage-shade"></div>
+        <div class="stage-top">
+          <div class="next-ticker" id="nextTicker"><span>下一首</span><b id="nextTitle">—</b></div>
+          <div class="stage-tags">
+            <span class="stag" id="stagMode">顺序播放</span>
+            <span class="stag live-score hidden" id="liveScore">得分 <b>0</b></span>
+          </div>
+        </div>
+
+        <div class="idle" id="idle">
+          <div class="idle-logo"><svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="17" fill="none" stroke="url(#gNeon)" stroke-width="1.6"/><path d="M16 12.5v15l12-7.5z" fill="url(#gNeon)"/></svg></div>
+          <h1>欢迎来到 星耀 KTV</h1>
+          <p>从左侧点歌台搜索或选择歌曲，点击即可加入已点列表</p>
+          <div class="idle-recs" id="idleRecs"></div>
+        </div>
+
+        <div class="intro" id="intro">
+          <div class="intro-cover"><img id="introCover" alt="" /></div>
+          <div class="intro-info">
+            <div class="intro-title" id="introTitle"></div>
+            <div class="intro-artist" id="introArtist"></div>
+            <div class="intro-meta" id="introMeta"></div>
+          </div>
+        </div>
+
+        <div class="lyrics" id="lyrics"></div>
+
+        <div class="score-pop" id="scorePop"></div>
+        <div class="loading hidden" id="loading"><div class="spinner"></div><span id="loadingText">正在加载歌曲…</span></div>
+
+        <div class="score-overlay hidden" id="scoreOverlay">
+          <div class="score-card">
+            <div class="score-song" id="scoreSong"></div>
+            <div class="score-grade" id="scoreGrade">S</div>
+            <div class="score-num"><b id="scoreNum">0</b><span>分</span></div>
+            <div class="score-stars" id="scoreStars"></div>
+            <div class="score-counts" id="scoreCounts"></div>
+            <div class="score-actions">
+              <button class="pill" id="scoreReplay"><svg><use href="#i-replay"/></svg>再唱一次</button>
+              <button class="pill primary" id="scoreNext">下一首 <em id="scoreCountdown">5</em></button>
+            </div>
+          </div>
+        </div>
+
+        <div class="stage-hud">
+          <div class="lyric-modes" id="lyricModes">
+            <button data-mode="double" class="on">双行</button>
+            <button data-mode="single">单行</button>
+            <button data-mode="scroll">滚动</button>
+          </div>
+          <div class="mic-meter" id="micMeter" title="麦克风电平"><svg><use href="#i-mic"/></svg><div class="meter"><i id="micLevel"></i></div></div>
+        </div>
+      </section>
+
+      <!-- 已点队列 -->
+      <aside class="panel queue" id="queuePanel">
+        <button class="queue-toggle" id="queueToggle" title="收起 / 展开已点列表">
+          <svg><use href="#i-chev-r"/></svg><span>已点</span><b id="queueBadge">0</b>
+        </button>
+        <div class="queue-inner">
+          <div class="qtabs" id="qtabs">
+            <button data-tab="queue" class="on">已点 <b id="qCount">0</b></button>
+            <button data-tab="history">已唱</button>
+            <button data-tab="records">录音 <b id="rCount">0</b></button>
+          </div>
+          <div class="qtools" id="qtools">
+            <span id="qHint">点击「优先」可置顶歌曲</span>
+            <button class="link-btn" id="qClear"><svg><use href="#i-trash"/></svg>清空</button>
+          </div>
+          <div class="qlist" id="qlist"></div>
+        </div>
+      </aside>
+    </main>
+
+    <!-- ======================= 底部控制栏 ======================= -->
+    <footer class="controls">
+      <div class="progress-row">
+        <span class="time" id="tCur">00:00</span>
+        <div class="progress" id="progress">
+          <div class="progress-track"><div class="progress-buf"></div><div class="progress-fill" id="progressFill"></div></div>
+          <div class="progress-thumb" id="progressThumb"></div>
+          <div class="progress-tip hidden" id="progressTip">00:00</div>
+        </div>
+        <span class="time" id="tDur">00:00</span>
+      </div>
+      <div class="ctrl-row">
+        <div class="ctrl-group vocal-group">
+          <button class="vocal-switch" id="btnVocal" title="原唱 / 伴唱切换 (V)">
+            <span class="vs-opt" data-v="original">原唱</span>
+            <span class="vs-opt" data-v="accompaniment">伴唱</span>
+            <i class="vs-knob"></i>
+          </button>
+        </div>
+
+        <div class="ctrl-group transport">
+          <button class="cbtn" id="btnPrev" title="上一首"><svg><use href="#i-prev"/></svg><span>上一首</span></button>
+          <button class="cbtn" id="btnReplay" title="重唱 (R)"><svg><use href="#i-replay"/></svg><span>重唱</span></button>
+          <button class="cbtn play" id="btnPlay" title="播放 / 暂停 (空格)"><svg><use href="#i-play"/></svg></button>
+          <button class="cbtn" id="btnNext" title="切歌 (N)"><svg><use href="#i-next"/></svg><span>切歌</span></button>
+          <button class="cbtn" id="btnMode" title="播放模式"><svg><use href="#i-seq"/></svg><span id="modeLabel">顺序</span></button>
+        </div>
+
+        <div class="ctrl-group key-group">
+          <span class="g-label">调音</span>
+          <button class="kbtn" id="btnKeyDown" title="降调 (-)">♭</button>
+          <button class="key-val" id="keyVal" title="点击恢复原调">0</button>
+          <button class="kbtn" id="btnKeyUp" title="升调 (+)">♯</button>
+        </div>
+
+        <div class="ctrl-group volumes">
+          <div class="vol">
+            <button class="vol-ico" id="btnMute" title="静音 (M)"><svg><use href="#i-vol"/></svg></button>
+            <div class="vol-body"><label>总音量 <em id="vMasterVal">85</em></label><input type="range" id="vMaster" min="0" max="100" value="85" /></div>
+          </div>
+          <div class="vol">
+            <span class="vol-ico"><svg><use href="#i-music"/></svg></span>
+            <div class="vol-body"><label>伴奏音量 <em id="vMusicVal">90</em></label><input type="range" id="vMusic" min="0" max="100" value="90" /></div>
+          </div>
+          <div class="vol">
+            <span class="vol-ico"><svg><use href="#i-mic"/></svg></span>
+            <div class="vol-body"><label>麦克风 <em id="vMicVal">80</em></label><input type="range" id="vMic" min="0" max="100" value="80" /></div>
+          </div>
+        </div>
+
+        <div class="ctrl-group mic-group">
+          <button class="tog" id="btnMic" title="开启 / 关闭麦克风"><svg><use href="#i-mic-off"/></svg><span>麦克风</span></button>
+          <button class="tog" id="btnMonitor" title="人声监听（耳返）"><svg><use href="#i-headphone"/></svg><span>监听</span></button>
+          <button class="tog rec" id="btnRec" title="录音"><svg><use href="#i-rec"/></svg><span>录音</span></button>
+        </div>
+      </div>
+    </footer>
+  </div>
+
+  <!-- ======================= 弹窗：上传歌曲 ======================= -->
+  <div class="modal hidden" id="uploadModal">
+    <div class="modal-card wide">
+      <div class="modal-head">
+        <h3 id="uploadTitle">上传歌曲</h3>
+        <div class="seg" id="uploadSeg"><button data-u="single" class="on">单首上传</button><button data-u="batch">批量导入</button></div>
+        <button class="x" data-close><svg><use href="#i-close"/></svg></button>
+      </div>
+      <div class="modal-body" data-u-pane="single">
+        <div class="form-grid">
+          <label class="field"><span>歌名 *</span><input id="fTitle" placeholder="例如：星光下的约定" /></label>
+          <label class="field"><span>歌手</span><input id="fArtist" placeholder="例如：林小夏" /></label>
+          <div class="field full"><span>分类</span><div class="tag-pick" id="fTags"></div></div>
+          <label class="file-drop" data-for="fOrig"><input type="file" id="fOrig" accept="audio/*" /><svg><use href="#i-music"/></svg><b>原唱音频 *</b><em data-name>mp3 / wav / m4a / ogg / flac</em></label>
+          <label class="file-drop" data-for="fInst"><input type="file" id="fInst" accept="audio/*" /><svg><use href="#i-music"/></svg><b>伴奏音频（独立音轨）</b><em data-name>可选，缺省时自动生成"消音伴奏"</em></label>
+          <label class="file-drop" data-for="fLrc"><input type="file" id="fLrc" accept=".lrc,.txt,text/plain" /><svg><use href="#i-lyric"/></svg><b>LRC 歌词</b><em data-name>支持标准 / 逐字 LRC，自动识别 GBK</em></label>
+          <label class="file-drop" data-for="fCover"><input type="file" id="fCover" accept="image/*" /><svg><use href="#i-image"/></svg><b>封面图片</b><em data-name>可选，缺省自动生成</em></label>
+        </div>
+        <p class="tip">歌曲保存在本机浏览器中（IndexedDB），刷新或重新打开页面后依然存在。可在「我的上传」中编辑、删除或导出为歌曲包。</p>
+      </div>
+      <div class="modal-body hidden" data-u-pane="batch">
+        <label class="file-drop big"><input type="file" id="fBatch" multiple accept="audio/*,.lrc,.txt,image/*" /><svg><use href="#i-upload"/></svg><b>选择多个文件（可多选）</b><em>按文件名自动配对：「歌手 - 歌名.mp3」「歌手 - 歌名_伴奏.mp3」「歌手 - 歌名.lrc」「歌手 - 歌名.jpg」</em></label>
+        <div class="batch-list" id="batchList"></div>
+      </div>
+      <div class="modal-foot">
+        <span class="foot-msg" id="uploadMsg"></span>
+        <button class="pill" data-close>取消</button>
+        <button class="pill primary" id="uploadSave">保存到曲库</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================= 弹窗：背景 ======================= -->
+  <div class="modal hidden" id="bgModal">
+    <div class="modal-card">
+      <div class="modal-head"><h3>播放背景</h3><button class="x" data-close><svg><use href="#i-close"/></svg></button></div>
+      <div class="modal-body">
+        <div class="bg-grid" id="bgGrid"></div>
+        <label class="file-drop slim"><input type="file" id="fBg" accept="image/*,video/*" /><svg><use href="#i-upload"/></svg><b>上传自定义背景</b><em>图片或视频（mp4 / webm），歌词将浮于背景上层</em></label>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================= 弹窗：设置 ======================= -->
+  <div class="modal hidden" id="settingsModal">
+    <div class="modal-card">
+      <div class="modal-head"><h3>设置</h3><button class="x" data-close><svg><use href="#i-close"/></svg></button></div>
+      <div class="modal-body settings">
+        <div class="set-sec">麦克风</div>
+        <div class="set-row"><div><b>人声混响</b><small>KTV 包房混响效果</small></div><input type="range" id="sReverb" min="0" max="100" value="35" /></div>
+        <div class="set-row"><div><b>回声消除 / 降噪</b><small>使用外放音箱时建议开启；戴耳机演唱可关闭以获得更自然的人声</small></div><label class="switch"><input type="checkbox" id="sEcho" checked /><i></i></label></div>
+        <div class="set-row"><div><b>人声监听（耳返）</b><small>实时从音箱 / 耳机听到自己的声音</small></div><label class="switch"><input type="checkbox" id="sMonitor" checked /><i></i></label></div>
+        <div class="set-sec">演唱</div>
+        <div class="set-row"><div><b>新歌默认模式</b><small>KTV 默认以伴唱开始，可随时切换原唱</small></div>
+          <div class="seg small" id="sDefault"><button data-v="accompaniment">伴唱</button><button data-v="original">原唱</button><button data-v="keep">保持上一首</button></div></div>
+        <div class="set-row"><div><b>演唱打分</b><small>开启麦克风后，根据节拍匹配实时评分</small></div><label class="switch"><input type="checkbox" id="sScore" checked /><i></i></label></div>
+        <div class="set-row"><div><b>歌词字号</b></div>
+          <div class="seg small" id="sFont"><button data-v="s">小</button><button data-v="m">中</button><button data-v="l">大</button></div></div>
+        <div class="set-sec">快捷键</div>
+        <div class="keys">
+          <span><kbd>空格</kbd>播放/暂停</span><span><kbd>N</kbd>切歌</span><span><kbd>R</kbd>重唱</span><span><kbd>V</kbd>原唱/伴唱</span>
+          <span><kbd>+</kbd><kbd>-</kbd>升降调</span><span><kbd>←</kbd><kbd>→</kbd>快退/快进</span><span><kbd>M</kbd>静音</span><span><kbd>F</kbd>全屏</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="toasts" id="toasts"></div>
+  <div class="first-tap hidden" id="firstTap"><div><b>点击任意处开始</b><small>浏览器需要一次点击来启用音频</small></div></div>
+
+  <!-- ======================= 脚本（按模块顺序加载） ======================= -->
+  <script src="js/utils.js"></script>
+  <script src="js/pitch-shifter.js"></script>
+  <script src="js/audio-engine.js"></script>
+  <script src="js/lyrics.js"></script>
+  <script src="js/library.js"></script>
+  <script src="js/queue.js"></script>
+  <script src="js/scoring.js"></script>
+  <script src="js/background.js"></script>
+  <script src="library/manifest.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
