@@ -150,7 +150,8 @@
             }
             for (let k = N2 + 1; k < N; k++) { re[k] = 0; im[k] = 0; }
             this.fft.transform(re, im, true);
-            const scale = 2 / (N2 * osamp);
+            // Hann² 重叠相加增益为 0.375*osamp，归一化后与原调电平一致
+            const scale = 2 / (N2 * osamp) / (0.375 * osamp);
             for (let k = 0; k < N; k++) this.accum[k] += scale * win[k] * re[k];
             for (let k = 0; k < step; k++) this.outFIFO[k] = this.accum[k];
             this.accum.copyWithin(0, step, step + N);
