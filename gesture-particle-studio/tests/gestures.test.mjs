@@ -34,8 +34,10 @@ test('掌心朝上 + 上移 → palm_up；不上移时保持 open/未知', () =>
   }
 });
 
-test('掌心朝前快速上抬 → palm_up 兜底；朝前慢速 → open_palm', () => {
-  assert.equal(rawClass('open_palm', {}, { rise: 2.0 }), 'palm_up');
+test('掌心朝前快速上抬：默认仍是 open_palm；开启 riseOnlyFallback 时兜底为 palm_up', () => {
+  assert.equal(rawClass('open_palm', {}, { rise: 5.0 }), 'open_palm');
+  const fallback = { ...cfg, palmUp: { ...cfg.palmUp, riseOnlyFallback: true } };
+  assert.equal(rawClass('open_palm', {}, { rise: 2.0, cfg: fallback }), 'palm_up');
   assert.equal(rawClass('open_palm', {}, { rise: 0.6 }), 'open_palm');
 });
 

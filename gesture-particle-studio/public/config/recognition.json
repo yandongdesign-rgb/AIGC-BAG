@@ -24,7 +24,7 @@
     "normalUpExit": 0.38,
     "requireRise": true,
     "riseSpeed": 0.5,
-    "riseOnlyFallback": true,
+    "riseOnlyFallback": false,
     "riseOnlySpeed": 1.6,
     "holdMs": 600
   },
