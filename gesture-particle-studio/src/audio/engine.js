@@ -62,11 +62,19 @@ export class AudioEngine {
     for (const def of soundLayers.list()) {
       const lc = c.layers[def.id];
       if (!lc) continue;
-      const inst = def.create(env);
+      // 混响发送也经过该层推子，关闭/静音的层不会从混响里漏声
+      const wet = gain(ctx, 0);
+      wet.connect(sendBus);
+      const send = (amount) => {
+        const g = gain(ctx, amount);
+        g.connect(wet);
+        return g;
+      };
+      const inst = def.create({ ...env, reverb: { send } });
       const fader = gain(ctx, 0);
       inst.input.connect(fader);
       fader.connect(this.bus);
-      this.layers.set(def.id, { def, inst, fader, cfg: lc, level: 0, target: 0 });
+      this.layers.set(def.id, { def, inst, fader, wet, cfg: lc, level: 0, target: 0 });
     }
     this._applyFaders(true);
     return ctx.resume();
@@ -89,6 +97,7 @@ export class AudioEngine {
       const lv = this.enabled[id] ? (L.def.oneShot ? 1 : L.target) * L.cfg.gain : 0;
       if (force || Math.abs(lv - L.level) > 0.002) {
         L.fader.gain.setTargetAtTime(lv, t, this.cfg.fadeSeconds / 3);
+        L.wet.gain.setTargetAtTime(lv, t, this.cfg.fadeSeconds / 3);
         L.level = lv;
       }
     }
