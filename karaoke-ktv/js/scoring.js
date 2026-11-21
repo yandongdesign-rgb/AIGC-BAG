@@ -74,6 +74,7 @@
     /** 整曲结算 */
     final() {
       if (!this.active || !this.stats.length) return null;
+      this._flush(Infinity); // 歌曲结束时结算尚未出分的句子
       const avg = this.stats.reduce((a, s) => a + s.score, 0) / this.stats.length;
       const gapPenalty = this.gapFrames ? Math.min(8, (this.gapVoiced / this.gapFrames) * 12) : 0;
       let score = avg > 1 ? Math.round(Math.max(0, Math.min(100, avg * 0.85 + 15 - gapPenalty))) : 0;
