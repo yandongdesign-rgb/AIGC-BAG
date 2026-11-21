@@ -1,0 +1,19 @@
+{
+  "_说明": "音效参数。gain 为该音效层最大音量（0~1），enabled 控制是否启用（界面也可开关）。",
+  "masterVolume": 0.8,
+  "fadeSeconds": 0.35,
+  "compressor": { "threshold": -18, "knee": 8, "ratio": 4, "attack": 0.003, "release": 0.25 },
+  "limiter": { "threshold": -3, "knee": 0, "ratio": 20, "attack": 0.001, "release": 0.08 },
+  "softClip": true,
+  "reverb": { "seconds": 3.2, "decay": 2.6, "wet": 0.32 },
+  "layers": {
+    "ambient": { "label": "环境底噪", "enabled": true, "gain": 0.22 },
+    "air": { "label": "空气嗡鸣", "enabled": true, "gain": 0.45 },
+    "impact": { "label": "冲击爆响", "enabled": true, "gain": 0.9 },
+    "electric": { "label": "电流噼啪", "enabled": true, "gain": 0.4 },
+    "vortex": { "label": "旋涡吸入", "enabled": true, "gain": 0.5 },
+    "pad": { "label": "空灵铺底", "enabled": true, "gain": 0.42 },
+    "pitch": { "label": "双手音高", "enabled": true, "gain": 0.3 },
+    "transition": { "label": "过渡音", "enabled": true, "gain": 0.22 }
+  }
+}

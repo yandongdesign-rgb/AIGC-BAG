@@ -1,0 +1,24 @@
+{
+  "name": "gesture-particle-studio",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "摄像头手势识别 + three.js 粒子 + Web Audio 合成音效",
+  "scripts": {
+    "postinstall": "node scripts/setup-assets.mjs",
+    "setup": "node scripts/setup-assets.mjs",
+    "dev": "vite --host 127.0.0.1 --port 5173",
+    "build": "vite build",
+    "preview": "vite preview --host 127.0.0.1 --port 4173",
+    "test": "node --test tests/",
+    "capture": "node tools/capture.mjs"
+  },
+  "dependencies": {
+    "@mediapipe/tasks-vision": "0.10.21",
+    "three": "0.170.0"
+  },
+  "devDependencies": {
+    "playwright-core": "^1.49.1",
+    "vite": "5.4.21"
+  }
+}
