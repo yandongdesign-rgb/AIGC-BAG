@@ -233,7 +233,12 @@
       const ext = res.blob.type.includes('ogg') ? 'ogg' : res.blob.type.includes('mp4') ? 'm4a' : 'webm';
       const rec = { id: 'r_' + U.uid(), name: s ? `${s.title} - ${s.artist}（我的演唱）` : `自由演唱 ${stamp}`, blob: res.blob,
         duration: res.duration, createdAt: Date.now(), ext };
-      try { await this.qpanel.addRecord(rec); } catch (e) { console.error(e); }
+      try { await this.qpanel.addRecord(rec); } catch (e) {
+        console.error(e);
+        UI.toast('录音无法保存到浏览器，已直接下载到本地', 'err', 4000);
+        U.download(rec.blob, `${U.safeName(rec.name)}.${ext}`);
+        return;
+      }
       UI.toast('录音已保存，可在右侧「录音」中试听 / 下载', 'ok', 3000);
     }
     async downloadRecord(id, kind) {
