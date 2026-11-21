@@ -136,7 +136,8 @@
       const toUrl = async (v) => (v instanceof Blob ? await U.blobToDataURL(v) : v);
       const meta = { id: s.id, title: s.title, artist: s.artist, album: s.album || '', tags: s.tags.filter((t) => t !== 'custom'), duration: s.duration || 0 };
       const cover = s.cover ? await toUrl(s.cover) : null;
-      const js = `/* KTV 歌曲包：${s.artist} - ${s.title} */\nKTV.registerSong(Object.assign(${JSON.stringify(meta)}, {\n` +
+      const label = `${s.artist} - ${s.title}`.replace(/\*\//g, '* /').replace(/[\r\n\u2028\u2029]/g, ' ');
+      const js = `/* KTV 歌曲包：${label} */\nKTV.registerSong(Object.assign(${JSON.stringify(meta)}, {\n` +
         (cover ? `  cover: ${JSON.stringify(cover)},\n` : '') +
         `  lrc: ${JSON.stringify(s.lrc || '')},\n  original: ${JSON.stringify(await toUrl(s.original))},\n` +
         `  instrumental: ${JSON.stringify(s.instrumental ? await toUrl(s.instrumental) : null)}\n}));\n`;
