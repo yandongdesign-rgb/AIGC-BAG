@@ -139,6 +139,7 @@
     }
 
     toIdle() {
+      this.finishRecording();
       this.engine.stop();
       this.song = null;
       this.queue.current = null;
