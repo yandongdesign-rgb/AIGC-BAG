@@ -21,6 +21,8 @@ export class HandTracker {
     this.captureTime = null;
     this.frameCaptureTime = null;
     this.delegate = null;
+    this.stream = null;
+    this.gen = 0;
   }
 
   async init(onStatus = () => {}) {
@@ -50,21 +52,39 @@ export class HandTracker {
   }
 
   async startCamera(video) {
+    this.stop(video);
+    const gen = this.gen;
     const stream = await navigator.mediaDevices.getUserMedia({
       video: { width: { ideal: 1280 }, height: { ideal: 720 }, facingMode: 'user', frameRate: { ideal: 60 } },
       audio: false,
     });
+    if (gen !== this.gen) {
+      stream.getTracks().forEach((t) => t.stop());
+      throw new Error('摄像头启动已取消');
+    }
+    this.stream = stream;
     video.srcObject = stream;
     await video.play();
     this.aspect = video.videoWidth / video.videoHeight;
     if ('requestVideoFrameCallback' in video) {
       const onFrame = (_, meta) => {
+        if (gen !== this.gen) return;
         this.captureTime = meta.captureTime ?? null;
         video.requestVideoFrameCallback(onFrame);
       };
       video.requestVideoFrameCallback(onFrame);
     }
     return stream;
+  }
+
+  /** 停止摄像头并结束帧回调 */
+  stop(video) {
+    this.gen++;
+    this.stream?.getTracks().forEach((t) => t.stop());
+    this.stream = null;
+    this.captureTime = null;
+    this.frameCaptureTime = null;
+    if (video) video.srcObject = null;
   }
 
   /** 有新视频帧时推理；返回 null 表示没有新帧 */
