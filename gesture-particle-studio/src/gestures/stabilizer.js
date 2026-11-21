@@ -11,7 +11,10 @@ export class Stabilizer {
   update(raw, now) {
     const prev = this.state;
     if (raw === 'unknown') {
-      if (now - this.lastKnown < this.cfg.unknownHoldMs) return { state: this.state, changed: false, prev };
+      if (now - this.lastKnown < this.cfg.unknownHoldMs) {
+        this.candidate = null;
+        return { state: this.state, changed: false, prev };
+      }
       raw = 'none';
     } else {
       this.lastKnown = now;
