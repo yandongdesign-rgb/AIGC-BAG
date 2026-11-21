@@ -97,7 +97,7 @@
       const comp = ctx.createDynamicsCompressor();
       comp.threshold.value = -22; comp.ratio.value = 3.5; comp.attack.value = 0.005; comp.release.value = 0.2;
       this.micAnalyser = ctx.createAnalyser(); this.micAnalyser.fftSize = 2048;
-      this.micVol = g(this.vol.mic);
+      this.micVol = g(this.vol.mic * 1.4);
       this.micDry = g(1);
       this.micWet = g(this.mic.reverb);
       this.reverb = ctx.createConvolver();
