@@ -95,7 +95,7 @@
 
     async startSong(item) {
       const song = this.lib.get(item.songId);
-      if (!song) return this.playNext();
+      if (!song) { this.queue.current = null; return this.playNext(); }
       this.hideScore();
       // 同步置位，防止连续快速点歌时重复启动；token 用于丢弃过期的加载结果
       this.loadingSong = true;
@@ -113,6 +113,7 @@
         $('#loading').classList.add('hidden');
         UI.toast(`歌曲加载失败：${song.title}（${e.message || e}）`, 'err', 4200);
         this.song = null;
+        this.queue.current = null; // 不放回列表循环，避免无限重试
         return this.playNext();
       }
       this.loadingSong = false;
@@ -265,7 +266,7 @@
       this.queue.history = this.queue.history.filter((i) => i.songId !== id);
       await this.lib.removeCustom(id);
       this.queue._changed();
-      if (this.song && this.song.id === id) this.playNext();
+      if (this.song && this.song.id === id) { this.queue.current = null; this.playNext(); }
       UI.toast('已删除', 'ok');
     }
 
