@@ -97,13 +97,17 @@
       const song = this.lib.get(item.songId);
       if (!song) return this.playNext();
       this.hideScore();
-      await this.finishRecording();
+      // 同步置位，防止连续快速点歌时重复启动；token 用于丢弃过期的加载结果
       this.loadingSong = true;
+      const token = (this.loadToken = (this.loadToken || 0) + 1);
       $('#loading').classList.remove('hidden');
       $('#loadingText').textContent = `正在加载《${song.title}》…`;
+      await this.finishRecording();
       try {
         await this.engine.load(song);
+        if (token !== this.loadToken) return;
       } catch (e) {
+        if (token !== this.loadToken) return;
         console.error(e);
         this.loadingSong = false;
         $('#loading').classList.add('hidden');
