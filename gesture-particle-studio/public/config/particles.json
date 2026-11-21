@@ -1,0 +1,46 @@
+{
+  "_说明": "粒子参数表。坐标单位：屏幕高度 = 2；速度单位/秒；life 为秒；size 为像素（会乘以设备像素比）；hue 为 0~360 色相。",
+  "quality": {
+    "start": 2,
+    "autoDegrade": true,
+    "minFps": 32,
+    "recoverFps": 56,
+    "windowSec": 2,
+    "levels": [
+      { "name": "低", "maxParticles": 12000, "bloom": false, "bloomScale": 0.5, "pixelRatio": 1 },
+      { "name": "中", "maxParticles": 30000, "bloom": true, "bloomScale": 0.5, "pixelRatio": 1 },
+      { "name": "高", "maxParticles": 60000, "bloom": true, "bloomScale": 1, "pixelRatio": 1.5 }
+    ]
+  },
+  "bloom": { "strength": 1.15, "radius": 0.55, "threshold": 0.04 },
+  "theme": "aurora",
+  "themes": {
+    "aurora": { "label": "极光", "background": "#02040c", "hueShift": 0, "saturation": 0.85, "video": 0.32 },
+    "inferno": { "label": "熔岩", "background": "#080202", "hueShift": -170, "saturation": 0.95, "video": 0.3 },
+    "neon": { "label": "霓虹", "background": "#05010d", "hueShift": 80, "saturation": 1.0, "video": 0.3 },
+    "mono": { "label": "冰白", "background": "#000000", "hueShift": 0, "saturation": 0.15, "video": 0.3 }
+  },
+  "effects": {
+    "idle": { "rate": 380, "life": [6, 10], "size": [1.5, 3.5], "speed": 0.05, "alpha": 0.4, "hue": [200, 250], "settle": 0.8 },
+    "trail": {
+      "ratePerTip": 260, "life": [0.5, 1.2], "size": [3, 8], "drag": 2.4, "inherit": 0.22, "jitter": 0.06, "hueSpeed": 70,
+      "ribbon": { "seconds": 0.32, "width": 0.022 }
+    },
+    "burst": {
+      "count": 2600, "sparks": 500, "ring": 360, "speed": [0.3, 2.6], "life": [0.5, 1.6], "drag": 1.5, "gravity": -0.7,
+      "size": [3, 9], "hue": [10, 48], "emberRate": 140, "flash": 1.4
+    },
+    "lightning": {
+      "length": 0.95, "segments": 20, "jag": 0.13, "branches": 3, "branchChance": 0.6, "refreshMs": 55,
+      "coreWidth": 0.006, "glowWidth": 0.035, "hue": 205, "sparkRate": 420
+    },
+    "vortex": {
+      "rate": 1500, "radius": 0.3, "life": [1.6, 3.2], "spin": 5.5, "inflow": 0.07, "tilt": 0.42,
+      "size": [2, 5.5], "hueInner": 185, "hueOuter": 290
+    },
+    "scatter": {
+      "rate": 950, "life": [3, 5.5], "speed": [0.1, 0.55], "gravity": 0.06, "drag": 0.45, "wander": 0.4,
+      "size": [2, 7.5], "twinkle": 6
+    }
+  }
+}

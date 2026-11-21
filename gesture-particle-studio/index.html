@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>手势粒子引擎 · Gesture Particle Studio</title>
+    <link rel="stylesheet" href="./src/style.css" />
+  </head>
+  <body>
+    <canvas id="fx"></canvas>
+    <video id="cam" playsinline muted></video>
+
+    <div id="hud" class="glass"></div>
+    <div id="gesture"></div>
+    <div id="toast"></div>
+
+    <aside id="panel" class="glass">
+      <header><b>控制台</b><small>H 隐藏 · 数字键切换演示手势</small></header>
+      <section>
+        <label>输入源</label>
+        <div class="row">
+          <button data-act="camera">摄像头</button>
+          <button data-act="demo">演示模式</button>
+        </div>
+        <div class="row" id="demoRow">
+          <label class="chk"><input type="checkbox" id="demoAuto" checked /> 自动巡演</label>
+        </div>
+      </section>
+      <section>
+        <label class="chk"><input type="checkbox" id="showVideo" checked /> 显示摄像头画面</label>
+        <label class="chk"><input type="checkbox" id="showSkeleton" /> 显示手部骨架</label>
+      </section>
+      <section>
+        <label>配色主题</label>
+        <select id="theme"></select>
+      </section>
+      <section>
+        <label>画质 <label class="chk inline"><input type="checkbox" id="autoQuality" checked /> 掉帧自动降级</label></label>
+        <select id="quality"></select>
+        <label>粒子上限 <span id="limitVal"></span></label>
+        <input type="range" id="limit" min="2000" max="60000" step="1000" />
+      </section>
+      <section>
+        <label>总音量</label>
+        <input type="range" id="volume" min="0" max="1" step="0.01" />
+        <div id="layers"></div>
+      </section>
+      <section class="row">
+        <button data-act="shot">截图</button>
+        <button data-act="rec">录屏 10s</button>
+      </section>
+    </aside>
+
+    <div id="start">
+      <div class="card glass">
+        <h1>手势粒子引擎</h1>
+        <p class="sub">摄像头手势识别 · GPU 粒子 · 实时合成音效</p>
+        <table id="legend"></table>
+        <div class="row big">
+          <button data-act="camera" class="primary">启动摄像头</button>
+          <button data-act="demo">演示模式（无摄像头）</button>
+        </div>
+        <p class="hint">画面只在本地浏览器处理，不上传。首次点击会请求摄像头权限并开启声音。</p>
+        <p id="status"></p>
+      </div>
+    </div>
+    <script type="module" src="./src/main.js"></script>
+  </body>
+</html>

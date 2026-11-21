@@ -1,0 +1,118 @@
+{
+  "capturedAt": "2026-11-21T06:16:49.560Z",
+  "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/156.0.0.0 Safari/537.36",
+  "gpu": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+  "viewport": "1280x720",
+  "perGesture": {
+    "open_palm": {
+      "fps": 49.36744364164567,
+      "frameMs": 1.6505109513716885,
+      "latencyMs": 1.6286804048443393,
+      "alive": 2168,
+      "limit": 12000,
+      "quality": "低",
+      "states": [
+        "open_palm",
+        "palm_up"
+      ],
+      "dualMax": 0
+    },
+    "fist": {
+      "fps": 46.34985953340583,
+      "frameMs": 1.890495337048577,
+      "latencyMs": 1.9047669053256422,
+      "alive": 2287,
+      "limit": 12000,
+      "quality": "低",
+      "states": [
+        "fist",
+        "open_palm"
+      ],
+      "dualMax": 0
+    },
+    "point": {
+      "fps": 48.29672708542019,
+      "frameMs": 1.3227873748893724,
+      "latencyMs": 1.3027824305967404,
+      "alive": 688,
+      "limit": 12000,
+      "quality": "低",
+      "states": [
+        "point"
+      ],
+      "dualMax": 0
+    },
+    "pinch": {
+      "fps": 49.33577353792036,
+      "frameMs": 1.829376782002388,
+      "latencyMs": 1.840832560699545,
+      "alive": 1763,
+      "limit": 12000,
+      "quality": "低",
+      "states": [
+        "pinch"
+      ],
+      "dualMax": 0
+    },
+    "palm_up": {
+      "fps": 50.5567251627625,
+      "frameMs": 1.6614948334164938,
+      "latencyMs": 1.6708420435449898,
+      "alive": 1824,
+      "limit": 12000,
+      "quality": "低",
+      "states": [
+        "palm_up"
+      ],
+      "dualMax": 0
+    },
+    "dual": {
+      "fps": 43.221070865909226,
+      "frameMs": 2.401474542072048,
+      "latencyMs": 2.3791687397713908,
+      "alive": 3343,
+      "limit": 12000,
+      "quality": "低",
+      "states": [
+        "open_palm"
+      ],
+      "dualMax": 0.8309948364883103
+    },
+    "none": {
+      "fps": 51.46423982746724,
+      "frameMs": 1.3776718130270877,
+      "latencyMs": 1.348008099790698,
+      "alive": 850,
+      "limit": 12000,
+      "quality": "低",
+      "states": [],
+      "dualMax": 0
+    }
+  },
+  "afterRecording": {
+    "source": "demo",
+    "fps": 30.772329804744363,
+    "frameMs": 2.48885131420985,
+    "inferMs": 0,
+    "latencyMs": 2.2271228137066807,
+    "latencyKind": "模拟+渲染",
+    "alive": 1307,
+    "limit": 12000,
+    "quality": "低",
+    "bloom": false,
+    "peakDb": -6.428629634050945,
+    "clips": 0,
+    "audio": "running",
+    "hands": [
+      {
+        "side": "right",
+        "state": "open_palm",
+        "score": 0.95,
+        "lost": false
+      }
+    ],
+    "dual": null,
+    "demo": "open_palm"
+  },
+  "errors": []
+}

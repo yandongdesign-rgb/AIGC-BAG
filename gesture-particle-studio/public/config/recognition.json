@@ -1,0 +1,39 @@
+{
+  "_说明": "手势识别参数。距离均按掌长（手腕→中指根）归一化，远近手都适用。",
+  "classifier": "rules",
+  "maxHands": 2,
+  "minHandConfidence": 0.6,
+  "maxInferenceFps": 60,
+  "mediapipe": {
+    "delegate": "GPU",
+    "minHandDetectionConfidence": 0.6,
+    "minHandPresenceConfidence": 0.6,
+    "minTrackingConfidence": 0.5,
+    "modelPath": "models/hand_landmarker.task",
+    "modelFallbackUrl": "https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task",
+    "wasmPath": "mediapipe/wasm",
+    "wasmFallbackUrl": "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.21/wasm"
+  },
+  "filter": { "minCutoff": 1.6, "beta": 0.04, "dCutoff": 1.0 },
+  "finger": { "extendAngle": 150, "extendReach": 1.08 },
+  "thumb": { "openRatio": 0.62, "ipAngle": 135 },
+  "open": { "minSpreadRatio": 1.12 },
+  "pinch": { "enter": 0.28, "exit": 0.4, "minIndexReach": 0.85 },
+  "palmUp": {
+    "normalUp": 0.55,
+    "normalUpExit": 0.38,
+    "requireRise": true,
+    "riseSpeed": 0.5,
+    "riseOnlyFallback": true,
+    "riseOnlySpeed": 1.6,
+    "holdMs": 600
+  },
+  "flipPalmNormal": false,
+  "stabilizer": {
+    "debounceMs": 110,
+    "debounceOverrides": { "fist": 60 },
+    "unknownHoldMs": 260,
+    "lostGraceMs": 350
+  },
+  "dual": { "minDistance": 0.12, "maxDistance": 0.85 }
+}

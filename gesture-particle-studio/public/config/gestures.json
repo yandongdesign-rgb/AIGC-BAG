@@ -1,0 +1,57 @@
+{
+  "_说明": "手势 ↔ 特效 ↔ 音效 映射表。effects/sounds 中的 id 必须在 particles.json 的 effects / audio.json 的 layers 中存在。weight/level 为 0~1 的强度系数。",
+  "transitionSeconds": 0.45,
+  "gestures": {
+    "open_palm": {
+      "label": "手掌张开",
+      "rule": "五指伸直 + 指根张开",
+      "effects": [{ "id": "trail", "weight": 1 }],
+      "sounds": [{ "id": "air", "level": 1 }]
+    },
+    "fist": {
+      "label": "握拳",
+      "rule": "五指收拢成拳（进入瞬间触发）",
+      "effects": [{ "id": "burst", "weight": 1 }],
+      "sounds": [{ "id": "impact", "level": 1 }],
+      "onEnter": { "effect": "burst", "sound": "impact" }
+    },
+    "point": {
+      "label": "食指指向",
+      "rule": "仅食指伸直",
+      "effects": [{ "id": "lightning", "weight": 1 }, { "id": "trail", "weight": 0.3 }],
+      "sounds": [{ "id": "electric", "level": 1 }]
+    },
+    "pinch": {
+      "label": "拇指食指捏合",
+      "rule": "拇指尖与食指尖距离 / 掌长 < 阈值",
+      "effects": [{ "id": "vortex", "weight": 1 }],
+      "sounds": [{ "id": "vortex", "level": 1 }]
+    },
+    "palm_up": {
+      "label": "手掌摊平上抬",
+      "rule": "掌心法向朝上 + 掌心向上移动",
+      "effects": [{ "id": "scatter", "weight": 1 }],
+      "sounds": [{ "id": "pad", "level": 1 }]
+    },
+    "none": {
+      "label": "无手 / 丢失",
+      "rule": "无手或置信度低于阈值",
+      "effects": [],
+      "sounds": []
+    }
+  },
+  "dual": {
+    "label": "双手靠近 / 拉开",
+    "rule": "检测到两只手，按两掌心距离缩放",
+    "effects": [{ "id": "vortex", "weight": 0.7 }],
+    "sounds": [{ "id": "pitch", "level": 1 }],
+    "radiusScale": [0.5, 2.2],
+    "pitchHz": [110, 880]
+  },
+  "idle": {
+    "label": "待机背景",
+    "effects": [{ "id": "idle", "weight": 1 }],
+    "sounds": [{ "id": "ambient", "level": 1 }]
+  },
+  "transitionSound": "transition"
+}
