@@ -194,6 +194,7 @@ export class FxRenderer {
     this.dataAttr.array.set(engine.aData);
     this.posAttr.needsUpdate = true;
     this.dataAttr.needsUpdate = true;
+    this.points.geometry.setDrawRange(0, engine.limit);
     this.batch.begin();
     engine.drawStrips(this.batch);
     this.strips.geometry.setDrawRange(0, this.batch.n);
