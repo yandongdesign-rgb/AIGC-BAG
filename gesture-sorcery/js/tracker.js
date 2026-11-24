@@ -20,6 +20,7 @@
 
     async load(progress) {
       const step = (p, t) => progress && progress(p, t);
+      if (this.landmarker) return step(1, '模型就绪');
       step(0.05, '加载识别引擎…');
       if (!window.MPVision) await loadScript('js/vendor/vision_bundle.js');
       if (!window.__SorceryModuleFactory) await loadScript('js/vendor/vision_wasm_internal.js');
@@ -44,16 +45,20 @@
         minTrackingConfidence: this.cfg.minTracking,
       });
       step(0.85, '初始化 GPU 推理…');
-      for (const delegate of ['GPU', 'CPU']) {
-        try {
-          window.ModuleFactory = window.__SorceryModuleFactory;
-          this.landmarker = await HandLandmarker.createFromOptions(fileset, opts(delegate));
-          this.delegate = delegate;
-          break;
-        } catch (e) {
-          console.warn('HandLandmarker 初始化失败（' + delegate + '）', e);
-          if (delegate === 'CPU') throw e;
+      try {
+        for (const delegate of ['GPU', 'CPU']) {
+          try {
+            window.ModuleFactory = window.__SorceryModuleFactory;
+            this.landmarker = await HandLandmarker.createFromOptions(fileset, opts(delegate));
+            this.delegate = delegate;
+            break;
+          } catch (e) {
+            console.warn('HandLandmarker 初始化失败（' + delegate + '）', e);
+            if (delegate === 'CPU') throw e;
+          }
         }
+      } finally {
+        URL.revokeObjectURL(wasmUrl);
       }
       step(1, '模型就绪');
     }
