@@ -122,7 +122,7 @@
               life: tt, size: U.rand(1.5, 4), size2: 3, color: [1, 0.9, 0.6], color2: [1, 0.6, 0.2], flags: 0 });
           }
           loopCharge = Math.max(loopCharge, s.charge); chargeP = Math.max(chargeP, s.charge);
-        } else if (g !== 'none' && s.charge > cfg.burstMinCharge && now - s.fistT < 650 && !inPurple) {
+        } else if (g === 'open' && s.charge > cfg.burstMinCharge && now - s.fistT < 650 && !inPurple) {
           this.burst(h.palm.x, h.palm.y, 0.35 + s.charge * 0.85, sz);
           s.charge = 0;
         } else if (now - s.fistT > 650 || inPurple) s.charge = 0;
