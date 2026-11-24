@@ -74,7 +74,7 @@
       if (two) out.push({ lm: mk(W - x, y, g, s, 0.2), gesture: g });
       return out;
     }
-    get busy() { return this.auto || !!this.script || this.keys.size > 0; }
+    get busy() { return this.auto || !!this.script || this.keys.size > 0 || this.releaseOpen > 0; }
   }
 
   SG.Demo = Demo;
