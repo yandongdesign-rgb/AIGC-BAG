@@ -1,0 +1,11 @@
+{
+  "name": "gesture-sorcery",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test tests/*.test.mjs",
+    "build:vendor": "node tools/build-vendor.mjs",
+    "pack": "node tools/pack.mjs"
+  }
+}

@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>咒术回响 · 手势法术</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div id="stage">
+  <video id="cam" playsinline muted></video>
+  <canvas id="dark"></canvas>
+  <canvas id="gl"></canvas>
+  <canvas id="fx"></canvas>
+</div>
+<div id="flash"></div>
+<div id="invert"></div>
+<div id="title"></div>
+
+<div id="hud" class="ui"></div>
+<div id="controls" class="ui">
+  <button id="b-auto" class="off" title="自动演示 (A)">巡演</button>
+  <button id="b-music" title="音乐 (M)">音乐</button>
+  <button id="b-cam" title="摄像头背景 (B)">背景</button>
+  <button id="b-skel" title="手部骨骼 (K)">骨骼</button>
+  <button id="b-full" title="全屏 (F)">全屏</button>
+  <button id="b-help" title="帮助 (/)">帮助</button>
+</div>
+<div id="spellbar" class="ui"></div>
+<div id="hint" class="ui">键盘演示：移动鼠标，按住 <kbd>1</kbd>~<kbd>7</kbd>，点按 <kbd>3</kbd> <kbd>8</kbd> <kbd>9</kbd> 施放连招 · <kbd>A</kbd> 自动巡演</div>
+
+<div id="intro">
+  <div class="panel">
+    <div class="logo">咒术回响</div>
+    <div class="sub">GESTURE SORCERY · 手势法术交互系统</div>
+    <p>用摄像头识别双手手势，召唤 <b>赫</b>、<b>苍</b>、<b>虚式·茈</b>、<b>闪爆</b>、<b>黑闪</b>、<b>雷霆</b>、<b>狐火</b>、<b>法阵</b> 与 <b>领域展开</b> 九种法术。画面与音乐全部实时生成，所有识别在本机完成，不上传任何画面。</p>
+    <div class="btns">
+      <button id="btn-cam" class="primary">开启摄像头施法</button>
+      <button id="btn-demo">键盘演示</button>
+      <button id="btn-auto">自动演示</button>
+    </div>
+    <div id="loading"><div class="bar"><div id="bar-in"></div></div><div id="load-text">加载中…</div></div>
+    <div id="err"></div>
+    <div class="tip">推荐 Chrome / Edge 最新版 · 双击画面全屏 · 按 <kbd>/</kbd> 查看全部手势</div>
+  </div>
+</div>
+
+<div id="help">
+  <div class="panel">
+    <h2>法术手册</h2>
+    <table>
+      <tr><th>法术</th><th>手势</th><th>键盘</th></tr>
+      <tr><td>术式 · 赫</td><td>☝️ 只伸食指，指尖凝聚赤红斥力球</td><td>按住 1</td></tr>
+      <tr><td>术式 · 苍</td><td>🤏 拇指食指捏合，生成吞噬粒子的蓝色引力奇点</td><td>按住 2</td></tr>
+      <tr><td>虚式 · 茈</td><td>一只手 ☝️赫、另一只手 🤏苍，双手靠拢融合为紫球；再张开手掌 ✋ 释放</td><td>点按 3</td></tr>
+      <tr><td>闪爆</td><td>✊ 握拳蓄力（越久越强），猛然张开 ✋</td><td>按住 4 后松开</td></tr>
+      <tr><td>黑闪</td><td>✊ 握拳快速挥出 / 朝镜头出拳</td><td>点按 9</td></tr>
+      <tr><td>雷霆万钧</td><td>✌️ 剑指（食指+中指）放电；双手同时剑指会在两手间连弧</td><td>按住 5</td></tr>
+      <tr><td>幽冥狐火</td><td>🤘 食指+小指，掌心与指尖燃起幽蓝狐火</td><td>按住 6</td></tr>
+      <tr><td>天穹法阵</td><td>✋ 张开手掌，掌心展开旋转法阵</td><td>按住 7</td></tr>
+      <tr><td>领域展开 · 无量空处</td><td>🙌 双手同时张开保持 1 秒</td><td>点按 8</td></tr>
+    </table>
+    <p class="keys"><kbd>A</kbd> 自动巡演　<kbd>M</kbd> 音乐　<kbd>B</kbd> 摄像头背景　<kbd>K</kbd> 骨骼　<kbd>H</kbd> 隐藏界面　<kbd>F</kbd> 全屏</p>
+  </div>
+</div>
+
+<script src="js/config.js"></script>
+<script src="js/utils.js"></script>
+<script src="js/gestures.js"></script>
+<script src="js/synth.js"></script>
+<script src="js/particles.js"></script>
+<script src="js/gl.js"></script>
+<script src="js/fx.js"></script>
+<script src="js/audio.js"></script>
+<script src="js/tracker.js"></script>
+<script src="js/hands.js"></script>
+<script src="js/spells.js"></script>
+<script src="js/demo.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>
