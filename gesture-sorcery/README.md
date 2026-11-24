@@ -14,7 +14,7 @@
 - Windows：双击 `start.cmd`
 - macOS / Linux：运行 `./start.sh`
 
-这两个脚本需要本机已安装 Python 3 或 Node.js，启动后会打开 http://localhost:8765 。
+这两个脚本会使用本机的 Node.js（自带 `serve.mjs`，无需联网安装）或 Python 3，启动后打开 http://localhost:8765 。
 
 没有摄像头也可以体验：点「键盘演示」或「自动演示」。
 
