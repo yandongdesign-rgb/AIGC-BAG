@@ -389,7 +389,7 @@ function applyHit(a,b,m,px,py,proj){
 }
 function knockout(b,a,dir){
   b.hp=0;b.st='ko';b.t=0;b.grounded=false;b.vy=-720;b.vx=dir*380;b.y=Math.min(b.y,GROUND-1);b.move=null;
-  if(game.phase==='menu'){return;}
+  if(game.phase!=='fight'){return;}
   game.phase='ko';game.phaseT=0;game.result={winner:a,loser:b,reason:'ko'};
   game.timeScale=0.25;game.flash=0.4;game.flashCol='#fff';game.hitstop=0.14;shake(18);
   sfx('ko');playVoice('ko');duckMusic();
@@ -400,15 +400,17 @@ function spawnProjectile(f){
   sfx('fire',f);
   for(let i=0;i<10;i++)parts.push({x:f.x+f.facing*74,y:f.y-145,vx:f.facing*rand(80,300),vy:rand(-160,160),life:.35,max:.35,size:rand(3,6),color:f.cfg.wave.core,kind:'dot',add:true});
 }
-function updateProjectiles(dt){
+function updateProjectiles(dt,active){
   for(const p of projectiles){
     if(p.dead)continue;
     p.x+=p.vx*dt;p.t+=dt;
     if(Math.random()<0.8)parts.push({x:p.x-Math.sign(p.vx)*rand(10,26),y:p.y+rand(-14,14),vx:-p.vx*0.12,vy:rand(-40,40),life:.3,max:.3,size:rand(3,7),color:p.cfg.wave.mid+'1)',kind:'dot',add:true});
-    const o=fighters.find(f=>f!==p.owner),hb=hurtbox(o);
-    if(hb){
-      const cx=clamp(p.x,hb.x,hb.x+hb.w),cy=clamp(p.y,hb.y,hb.y+hb.h);
-      if((cx-p.x)**2+(cy-p.y)**2<p.r*p.r){p.dead=true;applyHit(p.owner,o,MOVES.wave,p.x,p.y,p);burst(p.x,p.y,p.cfg);}
+    if(active){
+      const o=fighters.find(f=>f!==p.owner),hb=hurtbox(o);
+      if(hb){
+        const cx=clamp(p.x,hb.x,hb.x+hb.w),cy=clamp(p.y,hb.y,hb.y+hb.h);
+        if((cx-p.x)**2+(cy-p.y)**2<p.r*p.r){p.dead=true;applyHit(p.owner,o,MOVES.wave,p.x,p.y,p);burst(p.x,p.y,p.cfg);}
+      }
     }
     if(p.x<-60||p.x>STAGE_W+60||p.x<game.camX-200||p.x>game.camX+W+200)p.dead=true;
   }
@@ -553,9 +555,9 @@ function step(dt){
   for(const f of fighters){if(f.isAI&&active)updateAI(f,f===a?b:a,sdt);}
   updateFighter(a,b,sdt,active);
   updateFighter(b,a,sdt,active);
-  tryHit(a,b);tryHit(b,a);
+  if(active){tryHit(a,b);tryHit(b,a);}
   resolveBodies(a,b);
-  updateProjectiles(sdt);
+  updateProjectiles(sdt,game.phase==='fight'||game.phase==='menu');
   updateParts(sdt);
   const target=clamp((a.x+b.x)/2-W/2,0,STAGE_W-W);
   game.camX=lerp(game.camX,target,1-Math.exp(-dt*6));
