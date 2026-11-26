@@ -253,9 +253,9 @@ function readInput(){
 addEventListener('keydown',e=>{
   const code=e.code;
   if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Space','Slash'].includes(code))e.preventDefault();
-  if(code==='KeyP'||code==='Escape'){if(game.phase!=='menu'&&game.phase!=='end')togglePause();return;}
-  if(code==='KeyM'){toggleMusic();return;}
-  if(code==='KeyN'&&!(game.mode==='2p'&&false)){toggleSfx();return;}
+  if(code==='KeyP'||code==='Escape'){if(!e.repeat&&game.phase!=='menu'&&game.phase!=='end')togglePause();return;}
+  if(code==='KeyM'){if(!e.repeat)toggleMusic();return;}
+  if(code==='KeyN'){if(!e.repeat)toggleSfx();return;}
   keys.add(code);
   if(e.repeat)return;
   for(const f of fighters){
