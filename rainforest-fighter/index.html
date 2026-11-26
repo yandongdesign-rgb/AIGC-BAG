@@ -1142,7 +1142,7 @@ function togglePause(){
   game.paused=!game.paused;showOverlay(game.paused?'#pause':null);
   if(AU.ctx){if(game.paused)AU.ctx.suspend();else AU.ctx.resume();}
 }
-function toggleMusic(){AU.musicOn=!AU.musicOn;if(AU.ctx)AU.music.gain.setTargetAtTime(AU.musicOn?MUSIC_VOL:0,AU.ctx.currentTime,.05);$('#btnMusic').classList.toggle('off',!AU.musicOn);}
+function toggleMusic(){AU.musicOn=!AU.musicOn;if(AU.ctx){const g=AU.music.gain,t=AU.ctx.currentTime;g.cancelScheduledValues(t);g.setTargetAtTime(AU.musicOn?MUSIC_VOL:0,t,.05);}$('#btnMusic').classList.toggle('off',!AU.musicOn);}
 function toggleSfx(){AU.sfxOn=!AU.sfxOn;if(AU.ctx)AU.sfx.gain.setTargetAtTime(AU.sfxOn?1:0,AU.ctx.currentTime,.02);$('#btnSfx').classList.toggle('off',!AU.sfxOn);}
 function showResult(){
   const w=game.matchWinner;
