@@ -522,8 +522,7 @@ function stepPhase(dt){
   const F=game.flags;
   if(game.phase==='intro'){
     if(!F.a&&game.phaseT>0.35){F.a=true;const fin=game.round>=3;banner(fin?'FINAL ROUND':'ROUND '+game.round,1.15,'round');playVoice(fin?'r3':game.round===2?'r2':'r1');sfx('bell');}
-    if(!F.b&&game.phaseT>1.55){F.b=true;banner('FIGHT!',0.9,'fight');playVoice('fight');}
-    if(game.phaseT>2.0)game.phase='fight';
+    if(!F.b&&game.phaseT>1.55){F.b=true;game.phase='fight';banner('FIGHT!',0.9,'fight');playVoice('fight');}
   }else if(game.phase==='fight'){
     game.timer-=dt;
     if(game.timer<=0){game.timer=0;timeOver();}
