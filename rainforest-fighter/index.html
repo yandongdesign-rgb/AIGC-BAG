@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>雨林拳霸 · Jungle Brawl</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23123a22'/%3E%3Ctext x='50%25' y='56%25' dominant-baseline='middle' text-anchor='middle' font-size='34' font-family='sans-serif' font-weight='900' fill='%23ffd24a'%3EKO%3C/text%3E%3C/svg%3E">
 <style>
@@ -13,10 +13,11 @@
     -webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;}
   #wrap{position:relative;--s:1;font-size:calc(16px * var(--s));}
   canvas{display:block;}
-  .overlay{position:absolute;inset:0;display:none;align-items:center;justify-content:center;
+  .overlay{position:fixed;inset:0;display:none;align-items:center;justify-content:center;padding:12px;overflow:auto;
+    font-size:clamp(12px,calc(16px * var(--s)),18px);
     background:radial-gradient(ellipse at center,rgba(4,18,10,.35),rgba(2,10,6,.78));}
   .overlay.show{display:flex;}
-  .panel{width:44em;max-width:94%;padding:1.6em 2em 1.4em;border-radius:1.1em;text-align:center;
+  .panel{width:min(44em,94vw);max-height:94vh;overflow:auto;padding:1.6em 2em 1.4em;border-radius:1.1em;text-align:center;
     background:linear-gradient(160deg,rgba(18,48,30,.92),rgba(8,26,16,.94));
     border:.12em solid rgba(214,190,110,.55);box-shadow:0 1.2em 3em rgba(0,0,0,.55),inset 0 0 2.5em rgba(120,200,110,.12);}
   .kicker{letter-spacing:.35em;font-size:.72em;color:#b9d98f;font-weight:700;}
